@@ -12,6 +12,10 @@ function arrayFromRange(start, end) {
     return list;
 }
 
+function dataFileFromDate(date) {
+    return `data/${date.toDateOnlyString()}.csv`
+}
+
 function translate(x, y) {
     return "translate(" + x + "," + y + ")";
 }
@@ -132,7 +136,8 @@ function collectData(d, today) {
 
 function getDataAndDrawCharts(endingDate) {
     d3.select("#subtitle").text("Date: " + endingDate.toDateOnlyString());
-    d3.csv(endingDate.toDateOnlyString() + ".csv").then(data => {
+
+    d3.csv(dataFileFromDate(endingDate)).then(data => {
         var dailyData = getDailyData(data);
         var cleanData = collectData(dailyData, endingDate);
 

@@ -27,7 +27,8 @@ var todayDT = new Date();
 var date = new Date(todayDT.getFullYear(), todayDT.getMonth(), todayDT.getDate());
 
 // Get latest date for which we have data
-while (!fileExists(date.toDateOnlyString() + ".csv")) {
+
+while (!fileExists(dataFileFromDate(date))) {
     date.setDate(date.getDate() - 1);
 }
 
