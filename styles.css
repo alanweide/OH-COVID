@@ -1,0 +1,104 @@
+body {
+    font: 14px sans-serif;
+    padding: 20px;
+    text-align: center;
+}
+
+body p {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+form {
+    line-height: 200%;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+line.divider {
+    stroke: black;
+    stroke-width: 2;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    fill: none;
+    stroke: black;
+    stroke-width: 3;
+}
+
+.grid line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+}
+
+.grid path {
+    stroke-width: 0;
+}
+
+.layer {
+    opacity: 0.7;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+button {
+    position: relative;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.legend-box {
+    position: absolute;
+    pointer-events: none;
+    stroke: black;
+    stroke-width: 2px;
+    fill: white;
+}
+
+
+/* Tooltip container */
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+    /* If you want dots under the hoverable text */
+}
+
+
+/* Tooltip text */
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 240px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 7px;
+    border-radius: 8px;
+    line-height: 120%;
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 50%;
+    margin-left: -120px;
+}
+
+
+/* Show the tooltip text when you mouse over the tooltip container */
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
