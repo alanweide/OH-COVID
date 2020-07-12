@@ -341,7 +341,7 @@ function setupTooltips(charts) {
         var markLocs = [
             xCoord => {
                 var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setDate(rawDate.getDate());
+                rawDate.setHours(rawDate.getHours() + 12);
                 var roundDate = new Date(rawDate.toDateString());
 
                 var startDate = series0.data[0].date;
@@ -357,7 +357,7 @@ function setupTooltips(charts) {
             },
             xCoord => {
                 var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setDate(rawDate.getDate());
+                rawDate.setHours(rawDate.getHours() + 12);
                 var roundDate = new Date(rawDate.toDateString());
 
                 var startDate = series0.data[0].date;
