@@ -65,7 +65,6 @@ button {
     stroke-width: 2px;
     fill: white;
     opacity: 0.7;
-    backdrop-filter: blur(6px);
 }
 
 

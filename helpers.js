@@ -79,6 +79,7 @@ function udpateCountyDeaths(daily, datum) {
 
 const chartedCounties = ["Franklin", "Cuyahoga", "Knox", "Morrow", "Lucas"];
 
+
 function getDailyData(data) {
     var dailyData = new Object();
     data.forEach(function(d) {
@@ -378,6 +379,8 @@ function setupTooltips(charts) {
             return Math.max(minPadding, Math.min(mouseX - (rectWidth / 2), containerWidth - minPadding - rectWidth));
         };
 
+        const tranDur = 50;
+
         overlay.on("mouseover", function(d) {
                 var mouseX = d3.mouse(this)[0];
 
@@ -431,10 +434,10 @@ function setupTooltips(charts) {
 
                 var markX = markLocs[0](mouseX)[0];
                 chart.element.select("#mark")
-                    .transition().duration(50)
+                    .transition().duration(tranDur)
                     .attr("x1", markX).attr("x2", markX);
 
-                // overlay.select(`#tooltip${chartIdx}`).transition().duration(50).attr("x", mouseX);
+                // overlay.select(`#tooltip${chartIdx}`).transition().duration(tranDur).attr("x", mouseX);
                 var ttText = tooltip.selectAll("text")
                     .text(d => d(mouseX));
 
@@ -444,22 +447,23 @@ function setupTooltips(charts) {
                 // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
 
                 ttText
-                    .transition().duration(50)
+                    .transition().duration(tranDur)
                     .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10) + 8);
 
                 tooltip.select("#ttBox")
-                    .transition().duration(50)
+                    .transition().duration(tranDur)
                     .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10))
                     .attr("width", tooltipWidth);
 
                 var circles = chart.element.selectAll("circle")
-                    .transition().duration(50)
+                    .transition().duration(tranDur)
                     .attr("cx", function(d) { return d(mouseX)[0]; })
                     .attr("cy", function(d) {
                         return d(mouseX)[1];
                     })
             })
             .on("mouseout", function(d, i) {
+                // tooltip.transition().attr("opacity", 0);
                 tooltip.selectAll("rect").remove();
                 tooltip.selectAll("text").remove();
                 chart.element.selectAll("#mark").style("opacity", 0);
