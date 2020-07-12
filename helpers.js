@@ -369,6 +369,10 @@ function setupTooltips(charts) {
 
         var tooltipScale = d3.scaleBand().range([10, 100]).domain(arrayFromRange(0, tooltipData.length)).paddingOuter(0.5);
 
+        var xForCenteredRect = function(mouseX, rectWidth, containerWidth, minPadding) {
+            return Math.max(minPadding, Math.min(mouseX - (rectWidth / 2), containerWidth - minPadding - rectWidth));
+        };
+
         overlay.on("mouseover", function(d) {
                 var mouseX = d3.mouse(this)[0];
 
@@ -384,21 +388,26 @@ function setupTooltips(charts) {
                 tooltip.append("rect")
                     .attr("id", "ttBox")
                     .attr("class", "legend-box")
-                    .attr("x", mouseX).attr("y", 10)
+                    // .attr("filter", "url(#blur)")
                     .attr("rx", 10).attr("ry", 10)
                     .attr("height", tooltipScale.range()[1] - tooltipScale.range()[0]);
 
 
-                tooltip.selectAll("text").data(tooltipData)
+                var ttText = tooltip.selectAll("text").data(tooltipData)
                     .enter().append("text")
-                    .attr("x", mouseX + 8).attr("y", (d, i) => tooltipScale(i) + 10)
+                    .attr("y", (d, i) => tooltipScale(i) + 10)
                     .style("font-weight", (d, i) => (i == 0) ? "bold" : "normal")
                     .text(d => d(mouseX));
 
-                var maxTextWidth = d3.max(tooltip.selectAll("text").nodes(), d => d.getComputedTextLength());
+                var maxTextWidth = d3.max(ttText.nodes(), d => d.getComputedTextLength());
                 var tooltipWidth = (isNaN(maxTextWidth) ? 0 : maxTextWidth + 16);
 
+                // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
+
+                ttText.attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10) + 8);
+
                 tooltip.select("#ttBox")
+                    .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10)).attr("y", 10)
                     .attr("width", tooltipWidth);
 
                 var circles = chart.element.selectAll("circle").data(markLocs)
@@ -421,18 +430,21 @@ function setupTooltips(charts) {
                     .attr("x1", markX).attr("x2", markX);
 
                 // overlay.select(`#tooltip${chartIdx}`).transition().duration(50).attr("x", mouseX);
+                var ttText = tooltip.selectAll("text")
+                    .text(d => d(mouseX));
 
-                tooltip.selectAll("text")
-                    .text(d => d(mouseX))
-                    .transition().duration(50)
-                    .attr("x", mouseX + 8);
-                var maxTextWidth = d3.max(tooltip.selectAll("text").nodes(), d => d.getComputedTextLength());
+                var maxTextWidth = d3.max(ttText.nodes(), d => d.getComputedTextLength());
                 var tooltipWidth = (isNaN(maxTextWidth) ? 0 : maxTextWidth + 16);
 
+                // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
+
+                ttText
+                    .transition().duration(50)
+                    .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10) + 8);
 
                 tooltip.select("#ttBox")
                     .transition().duration(50)
-                    .attr("x", mouseX)
+                    .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10))
                     .attr("width", tooltipWidth);
 
                 var circles = chart.element.selectAll("circle")
