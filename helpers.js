@@ -77,8 +77,8 @@ function udpateCountyDeaths(daily, datum) {
     daily.counties[datum.county].daily.deaths += datum.deathCount;
 }
 
-const chartedCounties = ["Franklin", "Cuyahoga", "Knox", "Morrow", "Lucas"];
-
+const chartedCounties = ["Franklin", "Cuyahoga", "Lucas", "Knox", "Morrow"];
+const countyColors = ["red", "green", "blue", "orange", "salmon"];
 
 function getDailyData(data) {
     var dailyData = new Object();
@@ -206,8 +206,6 @@ function getDataAndDrawCharts(endingDate) {
             "Daily Cases (Statewide)"
         );
 
-        const chartedCounties = ["Franklin", "Cuyahoga", "Lucas"];
-        const countyColors = ["red", "green", "blue"];
         const countyCharts = [];
         chartedCounties.forEach(function(county, i) {
             const countyCasesSeries = new Series(
