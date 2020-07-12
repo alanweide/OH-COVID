@@ -303,14 +303,14 @@ function setupTooltips(charts) {
         var tooltipData = [
             function(xCoord) {
                 var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setDate(rawDate.getDate());
+                rawDate.setHours(rawDate.getHours() + 12);
                 var roundDate = new Date(rawDate.toDateString());
 
                 return `Selected Date: ${roundDate.toDateString()}`;
             },
             function(xCoord) {
                 var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setDate(rawDate.getDate());
+                rawDate.setHours(rawDate.getHours() + 12);
                 var roundDate = new Date(rawDate.toDateString());
 
                 var startDate = series0.data[0].date;
@@ -324,7 +324,7 @@ function setupTooltips(charts) {
             },
             function(xCoord) {
                 var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setDate(rawDate.getDate());
+                rawDate.setHours(rawDate.getHours() + 12);
                 var roundDate = new Date(rawDate.toDateString());
 
                 var startDate = series0.data[0].date;
@@ -352,7 +352,7 @@ function setupTooltips(charts) {
                 var circleX = chart.series[0].xScale(roundDate);
                 var circleY = chart.series[0].yScale(chart.series[0].yArg(chart.series[0].data[dayIdx]))
 
-                let coords = [circleX === undefined ? 0 : circleX, typeof circleY === 'undefined' ? chart.dim.height : circleY];
+                let coords = [typeof circleX === 'undefined' ? 0 : circleX, typeof circleY === 'undefined' ? chart.dim.height : circleY];
                 return coords;
             },
             xCoord => {
