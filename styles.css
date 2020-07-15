@@ -103,3 +103,10 @@ button {
 .tooltip:hover .tooltiptext {
     visibility: visible;
 }
+
+.checkboxes {
+    /* display: block;
+    float: left;
+    width: 25%; */
+    columns: 4 8em;
+}

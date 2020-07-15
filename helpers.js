@@ -79,6 +79,7 @@ function udpateCountyDeaths(daily, datum) {
 
 const chartedCounties = ["Franklin", "Cuyahoga", "Lucas", "Knox", "Morrow"];
 const countyColors = ["red", "green", "blue", "orange", "salmon"];
+var affectedCounties = new Set();
 
 function getDailyData(data) {
     var dailyData = new Object();
@@ -90,6 +91,7 @@ function getDailyData(data) {
             caseCount: +d["Case Count"],
             deathCount: +d["Death Count"]
         };
+        affectedCounties.add(datum.county);
         if (isValidDate(datum.onset)) {
             if (!(datum.onset in dailyData)) {
                 dailyData[datum.onset] = new DateStat(datum.onset);
