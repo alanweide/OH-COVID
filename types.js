@@ -36,32 +36,46 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
     this.chartTitle = chartTitle;
     this.dim = dim;
 
-    this.plot = function(element) {
+    this.plot = function(selection) {
+        selection.selectAll("g").remove();
+
         // Draw gridlines
-        element.append("g")
+        var xGridSel = selection //.selectAll("#xGrid");
+        xGridSel //.enter()
+            .append("g") //.merge(xGridSel)
+            .attr("id", "xGrid")
             .attr("class", "grid")
             .attr("transform", translate(0, this.dim.height))
             .call(this.xGrid()
                 .tickSize(-this.dim.height)
                 .tickFormat(""));
 
-        element.append("g")
+        var yGridSel = selection //.selectAll("#yGrid");
+        yGridSel //.enter()
+            .append("g") //.merge(yGridSel)
+            .attr("id", "yGrid")
             .attr("class", "grid")
             .call(this.yGrid
                 .tickSize(-this.dim.width)
                 .tickFormat(""));
 
         // Draw axes
-        element.append("g")
+        var xAxisSel = selection //.selectAll(".x-axis");
+        xAxisSel //.enter()
+            .append("g") //.merge(xAxisSel)
             .attr("class", "x-axis")
             .attr("transform", translate(0, this.dim.height))
             .call(this.xAxis);
-        element.append("g")
+        var yAxisSel = selection //.selectAll(".y-axis");
+        yAxisSel //.enter()
+            .append("g") //.merge(yAxisSel)
             .attr("class", "y-axis")
             .call(this.yAxis);
 
         // Draw chart title
-        element.append("g")
+        var titleSel = selection //.selectAll(".title");
+        titleSel //.enter()
+            .append("g") //.merge(titleSel)
             .attr("transform", translate(this.dim.width / 2, -15))
             .append("text")
             .attr("text-anchor", "middle")
@@ -69,9 +83,28 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
             .text(this.chartTitle);
 
         // Draw series
-        series.forEach(function(s) {
-            element.append("path")
+        // var seriesSel = selection.selectAll("path");
+        // seriesSel.data(series).enter()
+        //     .each(s => { console.log(s) })
+        //     .append("path").merge(seriesSel)
+        //     .datum(s => s.data)
+        //     .attr("id", (d, i) => `series${i}`)
+        //     .attr("fill", "none")
+        //     .attr("stroke", s => s.color)
+        //     .attr("stroke-width", 1.5)
+        //     .attr("d", d3.line()
+        //         .defined(s => s.defined)
+        //         .x(s => s.x)
+        //         .y(s => s.y)
+        //     )
+        //     .exit().remove();
+
+        series.forEach(function(s, i) {
+            var seriesSel = selection.select(`#series${i}`);
+            seriesSel.enter()
+                .append("path").merge(seriesSel)
                 .datum(s.data)
+                .attr("id", (d, i) => `series${i}`)
                 .attr("fill", "none")
                 .attr("stroke", s.color)
                 .attr("stroke-width", 1.5)
@@ -79,9 +112,10 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
                     .defined(s.defined)
                     .x(s.x)
                     .y(s.y)
-                );
+                )
+                .exit().remove();
         });
 
-        this.element = element;
+        this.selection = selection;
     }
 }

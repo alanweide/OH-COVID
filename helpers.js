@@ -77,9 +77,39 @@ function udpateCountyDeaths(daily, datum) {
     daily.counties[datum.county].daily.deaths += datum.deathCount;
 }
 
-const chartedCounties = ["Franklin", "Cuyahoga", "Lucas", "Knox", "Morrow"];
+const chartedCounties = new Set(); //["Franklin", "Cuyahoga", "Lucas", "Knox", "Morrow"];
 const countyColors = ["red", "green", "blue", "orange", "salmon"];
 var affectedCounties = new Set();
+
+function generateCheckboxes(selection) {
+    /*
+    <div>
+        <input type="checkbox" id="county" name="county">
+        <label for="county">county</label>
+    </div>
+     */
+    cbDiv = selection.enter().append("li").append("div")
+    checkbox = cbDiv.append("input")
+        .attr("type", "checkbox").attr("name", d => d).attr("value", d => d).attr("id", d => d);
+    cbDiv.append("label").attr("for", d => d).text(d => d);
+
+    checkbox.on("change", d => {
+        if (d3.select(`#${d}`).property("checked")) {
+            chartedCounties.add(d);
+        } else {
+            chartedCounties.delete(d);
+        }
+        // updateCharts(generateCharts(Array.from(chartedCounties.values())));
+        updateCharts(generateCharts(chartedCounties));
+    })
+}
+
+function addCounty(county) {
+    affectedCounties.add(county);
+    d3.select("#counties")
+        .selectAll("li").data(Array.from(affectedCounties.values()))
+        .call(generateCheckboxes);
+}
 
 function getDailyData(data) {
     var dailyData = new Object();
@@ -91,7 +121,8 @@ function getDailyData(data) {
             caseCount: +d["Case Count"],
             deathCount: +d["Death Count"]
         };
-        affectedCounties.add(datum.county);
+        // affectedCounties.add(datum.county);
+        addCounty(datum.county);
         if (isValidDate(datum.onset)) {
             if (!(datum.onset in dailyData)) {
                 dailyData[datum.onset] = new DateStat(datum.onset);
@@ -137,157 +168,185 @@ function collectData(d, today) {
     return data;
 }
 
+var dailyData;
+var cleanData;
+
+function drawCharts(data, date) {
+    dailyData = getDailyData(data);
+    cleanData = collectData(dailyData, date);
+
+    var charts = generateCharts(chartedCounties);
+    updateCharts(charts);
+}
+
+function generateCharts(chartedCounties) {
+
+    // Set the scales
+    var xScale = d3.scaleTime()
+        .domain(d3.extent(cleanData, d => d.date))
+        .range([0, chartWidth]);
+    var yScaleCases = d3.scaleLinear()
+        .domain([0, d3.max(cleanData, d => +d.statewide.daily.cases)]).nice()
+        .range([chartHeight, 0]);
+    var yScaleDeaths = d3.scaleLinear()
+        .domain([0, d3.max(cleanData, d => +d.statewide.daily.deaths)]).nice()
+        .range([chartHeight, 0]);
+
+    function countyYScaleCases(county) {
+        return d3.scaleLinear()
+            .domain([0, d3.max(cleanData, d => {
+                if (!(county in d.counties)) {
+                    return 0;
+                }
+                return d.counties[county].daily.cases
+            })]).nice()
+            .range([chartHeight, 0]);
+    }
+
+    // Nominal number of tick marks on y axis
+    var yGrids = 10;
+
+    // Define the axes
+    var xAxis = d3.axisBottom().scale(xScale)
+        .ticks(d3.timeMonth);
+
+    var yAxisCases = d3.axisLeft().scale(yScaleCases);
+    var yAxisDeaths = d3.axisLeft().scale(yScaleDeaths);
+
+    //gridlines on x axis
+    function make_x_gridlines() {
+        return d3.axisBottom(xScale)
+            .ticks(d3.timeDay);
+    }
+
+    // gridlines on y axis
+    function make_y_gridlines(scale) {
+        return d3.axisLeft(scale)
+            .ticks(yGrids);
+    }
+
+    const countyCharts = [];
+    chartedCounties.forEach(function(county, i) {
+        console.log(`Generating chart for ${county}`);
+        const countyCasesSeries = new Series(
+            cleanData,
+            // d => xScale(d.date),
+            xScale, d => d.date,
+            countyYScaleCases(county), d => (county in d.counties ? d.counties[county].daily.cases : 0),
+            `dark${countyColors[i]}`,
+        );
+        const countyCasesAverage = new Series(
+            movingAverage(cleanData.map(d => {
+                if (!(county in d.counties)) {
+                    return 0;
+                }
+                return d.counties[county].daily.cases
+            }), 7),
+            // (d, i) => xScale(cleanData[i].date),
+            xScale, (d, i) => cleanData[i].date,
+            countyYScaleCases(county), d => (d),
+            countyColors[i],
+            d => !isNaN(d));
+        const countyCasesChart = new Chart(
+            xAxis,
+            d3.axisLeft().scale(countyYScaleCases(county)),
+            make_x_gridlines,
+            make_y_gridlines(countyYScaleCases(county)), [countyCasesSeries, countyCasesAverage],
+            `Daily Cases (${county} County)`
+        );
+        countyCharts.push(countyCasesChart);
+    });
+
+    const stateCasesSeries = new Series(
+        cleanData,
+        xScale, d => d.date,
+        yScaleCases, d => (d.statewide.daily.cases),
+        "steelblue");
+    const stateCasesAverage = new Series(
+        movingAverage(cleanData.map(d => d.statewide.daily.cases), 7),
+        // (d, i) => xScale(cleanData[i].date),
+        xScale, (d, i) => cleanData[i].date,
+        yScaleCases, d => (d),
+        "green",
+        d => !isNaN(d));
+    const stateCasesChart = new Chart(
+        xAxis,
+        yAxisCases,
+        make_x_gridlines,
+        make_y_gridlines(yScaleCases), [stateCasesSeries, stateCasesAverage],
+        "Daily Cases (Statewide)"
+    );
+
+    const stateDeathsSeries = new Series(
+        cleanData,
+        xScale, d => d.date,
+        yScaleDeaths, d => (d.statewide.daily.deaths),
+        "#303030"
+    );
+    const stateDeathsAvg = new Series(
+        movingAverage(cleanData.map(d => d.statewide.daily.deaths), 7),
+        // (d, i) => xScale(cleanData[i].date),
+        xScale, (d, i) => cleanData[i].date,
+        yScaleDeaths, d => (d),
+        "#A0A0A0",
+        d => !isNaN(d)
+    );
+    const stateDeathsChart = new Chart(
+        xAxis,
+        yAxisDeaths,
+        make_x_gridlines,
+        make_y_gridlines(yScaleDeaths), [stateDeathsSeries, stateDeathsAvg],
+        "Daily Deaths (Statewide)"
+    );
+
+    return [stateCasesChart].concat(countyCharts).concat([stateDeathsChart]);
+}
+
+function updateCharts(charts) {
+    numCharts = charts.length;
+    svg.style("height", fullHeight);
+    chartsSel = svg.selectAll("#chart").data(charts) //.remove();
+
+    chartsSel.enter().append("g")
+        .merge(chartsSel)
+        .each(function(d) {
+            console.log(`Plotting chart ${d.chartTitle}`);
+            d.plot(d3.select(this));
+        })
+        .attr("id", "chart")
+        .attr("transform", (d, i) => translate(margin.left, margin.top + i * (chartHeight + margin.middle)))
+        .style("margin", 0)
+        .exit().remove();
+    // charts.forEach((d, i) => {
+    //     var group = svg.append("g")
+    //         .attr("id", `chart${i}`)
+    //         .attr("transform", translate(margin.left, margin.top + i * (chartHeight + margin.middle)))
+    //         .style("margin", 0);
+
+    //     d.plot(group);
+    // });
+
+    setupTooltips(charts);
+
+    console.log("Done.")
+}
+
 function getDataAndDrawCharts(endingDate) {
     d3.select("#subtitle").text("Date: " + endingDate.toDateOnlyString());
 
-    d3.csv(dataFileFromDate(endingDate)).then(data => {
-        var dailyData = getDailyData(data);
-        var cleanData = collectData(dailyData, endingDate);
-
-        // Set the scales
-        var xScale = d3.scaleTime()
-            .domain(d3.extent(cleanData, d => d.date))
-            .range([0, chartWidth]);
-        var yScaleCases = d3.scaleLinear()
-            .domain([0, d3.max(cleanData, d => +d.statewide.daily.cases)]).nice()
-            .range([chartHeight, 0]);
-        var yScaleDeaths = d3.scaleLinear()
-            .domain([0, d3.max(cleanData, d => +d.statewide.daily.deaths)]).nice()
-            .range([chartHeight, 0]);
-
-        function countyYScaleCases(county) {
-            return d3.scaleLinear()
-                .domain([0, d3.max(cleanData, d => {
-                    if (!(county in d.counties)) {
-                        return 0;
-                    }
-                    return d.counties[county].daily.cases
-                })]).nice()
-                .range([chartHeight, 0]);
-        }
-
-        // Nominal number of tick marks on y axis
-        var yGrids = 10;
-
-        // Define the axes
-        var xAxis = d3.axisBottom().scale(xScale)
-            .ticks(d3.timeMonth);
-
-        var yAxisCases = d3.axisLeft().scale(yScaleCases);
-        var yAxisDeaths = d3.axisLeft().scale(yScaleDeaths);
-
-        //gridlines on x axis
-        function make_x_gridlines() {
-            return d3.axisBottom(xScale)
-                .ticks(d3.timeDay);
-        }
-
-        // gridlines on y axis
-        function make_y_gridlines(scale) {
-            return d3.axisLeft(scale)
-                .ticks(yGrids);
-        }
-
-        const stateCasesSeries = new Series(
-            cleanData,
-            xScale, d => d.date,
-            yScaleCases, d => (d.statewide.daily.cases),
-            "steelblue");
-        const stateCasesAverage = new Series(
-            movingAverage(cleanData.map(d => d.statewide.daily.cases), 7),
-            // (d, i) => xScale(cleanData[i].date),
-            xScale, (d, i) => cleanData[i].date,
-            yScaleCases, d => (d),
-            "green",
-            d => !isNaN(d));
-        const stateCasesChart = new Chart(
-            xAxis,
-            yAxisCases,
-            make_x_gridlines,
-            make_y_gridlines(yScaleCases), [stateCasesSeries, stateCasesAverage],
-            "Daily Cases (Statewide)"
-        );
-
-        const countyCharts = [];
-        chartedCounties.forEach(function(county, i) {
-            const countyCasesSeries = new Series(
-                cleanData,
-                // d => xScale(d.date),
-                xScale, d => d.date,
-                countyYScaleCases(county), d => (county in d.counties ? d.counties[county].daily.cases : 0),
-                `dark${countyColors[i]}`,
-            );
-            const countyCasesAverage = new Series(
-                movingAverage(cleanData.map(d => {
-                    if (!(county in d.counties)) {
-                        return 0;
-                    }
-                    return d.counties[county].daily.cases
-                }), 7),
-                // (d, i) => xScale(cleanData[i].date),
-                xScale, (d, i) => cleanData[i].date,
-                countyYScaleCases(county), d => (d),
-                countyColors[i],
-                d => !isNaN(d));
-            const countyCasesChart = new Chart(
-                xAxis,
-                d3.axisLeft().scale(countyYScaleCases(county)),
-                make_x_gridlines,
-                make_y_gridlines(countyYScaleCases(county)), [countyCasesSeries, countyCasesAverage],
-                `Daily Cases (${county} County)`
-            );
-            countyCharts.push(countyCasesChart);
-        });
-
-        const stateDeathsSeries = new Series(
-            cleanData,
-            xScale, d => d.date,
-            yScaleDeaths, d => (d.statewide.daily.deaths),
-            "#303030"
-        );
-        const stateDeathsAvg = new Series(
-            movingAverage(cleanData.map(d => d.statewide.daily.deaths), 7),
-            // (d, i) => xScale(cleanData[i].date),
-            xScale, (d, i) => cleanData[i].date,
-            yScaleDeaths, d => (d),
-            "#A0A0A0",
-            d => !isNaN(d)
-        );
-        const stateDeathsChart = new Chart(
-            xAxis,
-            yAxisDeaths,
-            make_x_gridlines,
-            make_y_gridlines(yScaleDeaths), [stateDeathsSeries, stateDeathsAvg],
-            "Daily Deaths (Statewide)"
-        );
-
-        const charts = [stateCasesChart].concat(countyCharts).concat([stateDeathsChart]);
-
-        numCharts = charts.length;
-        svg.style("height", fullHeight);
-        charts.forEach((d, i) => {
-            var group = svg.append("g")
-                .attr("id", `chart${i}`)
-                .attr("transform", translate(margin.left, margin.top + i * (chartHeight + margin.middle)))
-                .style("margin", 0);
-
-            d.plot(group);
-        });
-
-        setupTooltips(charts, xScale);
-    });
+    d3.csv(dataFileFromDate(endingDate)).then(d => drawCharts(d, endingDate));
 }
 
 function setupTooltips(charts) {
     charts.forEach((chart, chartIdx) => {
 
-        chart.element.append("line")
+        chart.selection.append("line")
             .attr("id", "mark")
             .style("stroke", "black")
             .style("stroke-width", 1)
             .style("opacity", 0);
 
-        var overlay = chart.element.append("g")
+        var overlay = chart.selection.append("g")
             .attr("id", `overlay${chartIdx}`)
             // .attr("transform", translate(10, 10));
         overlay.append("rect")
@@ -386,7 +445,7 @@ function setupTooltips(charts) {
 
                 var markX = markLocs[0](mouseX)[0];
 
-                chart.element.select("#mark")
+                chart.selection.select("#mark")
                     .style("opacity", 0.7)
                     .attr("x1", markX).attr("x2", markX)
                     .attr("y1", 0).attr("y2", chart.dim.height);
@@ -418,8 +477,8 @@ function setupTooltips(charts) {
                     .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10)).attr("y", 10)
                     .attr("width", tooltipWidth);
 
-                var circles = chart.element.selectAll("circle").data(markLocs)
-                    .enter().append("circle")
+                var circles = chart.selection.selectAll("circle").data(markLocs)
+                    .enter().append("circle");
 
                 circles
                     .attr("cx", function(d) { return d(mouseX)[0]; })
@@ -433,7 +492,7 @@ function setupTooltips(charts) {
                 var mouseX = d3.mouse(this)[0];
 
                 var markX = markLocs[0](mouseX)[0];
-                chart.element.select("#mark")
+                chart.selection.select("#mark")
                     .transition().duration(tranDur)
                     .attr("x1", markX).attr("x2", markX);
 
@@ -455,7 +514,7 @@ function setupTooltips(charts) {
                     .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10))
                     .attr("width", tooltipWidth);
 
-                var circles = chart.element.selectAll("circle")
+                var circles = chart.selection.selectAll("circle")
                     .transition().duration(tranDur)
                     .attr("cx", function(d) { return d(mouseX)[0]; })
                     .attr("cy", function(d) {
@@ -466,8 +525,8 @@ function setupTooltips(charts) {
                 // tooltip.transition().attr("opacity", 0);
                 tooltip.selectAll("rect").remove();
                 tooltip.selectAll("text").remove();
-                chart.element.selectAll("#mark").style("opacity", 0);
-                chart.element.selectAll("circle").remove();
+                chart.selection.selectAll("#mark").style("opacity", 0);
+                chart.selection.selectAll("circle").remove();
             });
     });
 }
