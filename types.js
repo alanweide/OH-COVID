@@ -14,12 +14,13 @@ function DateStat(date) {
     this.statewide = new DailyCumPair();
 }
 
-function Series(data, xScale, xArg, yScale, yArg, color, defined = (d => true)) {
+function Series(data, xScale, xArg, yScale, yArg, cum, color, defined = (d => true)) {
     this.data = data;
     this.xScale = xScale;
     this.xArg = xArg;
     this.yScale = yScale;
     this.yArg = yArg;
+    this.cum = cum;
     this.color = color;
     this.defined = defined;
 
@@ -38,6 +39,8 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
 
     this.plot = function(selection) {
         selection.selectAll("g").remove();
+        selection.selectAll("text").remove();
+        selection.selectAll("path").remove();
 
         // Draw gridlines
         var xGridSel = selection //.selectAll("#xGrid");
@@ -68,27 +71,39 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
             .call(this.xAxis);
         var yAxisSel = selection //.selectAll(".y-axis");
         yAxisSel //.enter()
-            .append("g") //.merge(yAxisSel)
+            .append("g").merge(yAxisSel)
             .attr("class", "y-axis")
             .call(this.yAxis);
 
         // Draw chart title
-        var titleSel = selection //.selectAll(".title");
+        var titleSel = selection // .selectAll(".title");
         titleSel //.enter()
-            .append("g") //.merge(titleSel)
+            .append("text") //.merge(titleSel)
             .attr("transform", translate(this.dim.width / 2, -15))
-            .append("text")
             .attr("text-anchor", "middle")
             .attr("class", "title")
             .text(this.chartTitle);
 
         // Draw series
-        // var seriesSel = selection.selectAll("path");
-        // seriesSel.data(series).enter()
-        //     .each(s => { console.log(s) })
-        //     .append("path").merge(seriesSel)
-        //     .datum(s => s.data)
-        //     .attr("id", (d, i) => `series${i}`)
+
+        series.forEach(function(s, i) {
+            selection.append("path")
+                .datum(s.data)
+                // .attr("id", (d, i) => `series${i}`)
+                .attr("fill", "none")
+                .attr("stroke", s.color)
+                .attr("stroke-width", 1.5)
+                .attr("d", d3.line()
+                    .defined(s.defined)
+                    .x(s.x)
+                    .y(s.y)
+                );
+        });
+
+        // var seriesSel = selection.selectAll("#series");
+        // seriesSel.data(this.series).join(
+        //     enter => enter.append("path")
+        //     .attr("id", "series")
         //     .attr("fill", "none")
         //     .attr("stroke", s => s.color)
         //     .attr("stroke-width", 1.5)
@@ -97,24 +112,34 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
         //         .x(s => s.x)
         //         .y(s => s.y)
         //     )
-        //     .exit().remove();
+        //     .datum(s => s.data),
+        //     update => update
+        //     .attr("stroke", s => s.color)
+        //     .attr("d", d3.line()
+        //         .defined(s => s.defined)
+        //         .x(s => s.x)
+        //         .y(s => s.y)
+        //     )
+        //     .datum(s => s.data),
+        //     exit => exit.remove()
+        // );
 
-        series.forEach(function(s, i) {
-            var seriesSel = selection.select(`#series${i}`);
-            seriesSel.enter()
-                .append("path").merge(seriesSel)
-                .datum(s.data)
-                .attr("id", (d, i) => `series${i}`)
-                .attr("fill", "none")
-                .attr("stroke", s.color)
-                .attr("stroke-width", 1.5)
-                .attr("d", d3.line()
-                    .defined(s.defined)
-                    .x(s.x)
-                    .y(s.y)
-                )
-                .exit().remove();
-        });
+        // series.forEach(function(s, i) {
+        //     var seriesSel = selection.selectAll(`#series${i}`);
+        //     seriesSel.enter()
+        //         .append("path").merge(seriesSel)
+        //         .datum(s.data)
+        //         .attr("id", (d, i) => `series${i}`)
+        //         .attr("fill", "none")
+        //         .attr("stroke", s.color)
+        //         .attr("stroke-width", 1.5)
+        //         .attr("d", d3.line()
+        //             .defined(s.defined)
+        //             .x(s.x)
+        //             .y(s.y)
+        //         )
+        //         .exit().remove();
+        // });
 
         this.selection = selection;
     }
