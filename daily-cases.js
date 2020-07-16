@@ -10,15 +10,10 @@ var fullHeight = function() {
 var vis = d3.select("#vis");
 var svg = vis.append("svg").style("width", "100%").style("height", fullHeight);
 
-var filter = svg.append("filter")
-    .attr("id", "blur")
-    .append("feGaussianBlur")
-    .attr("stdDeviation", 1);
-
-var truewidth = d3.select("svg").node().getBoundingClientRect().width;
+var truewidth = function() { return d3.select("svg").node().getBoundingClientRect().width; };
 
 // Set the dimensions of the charts
-var chartWidth = truewidth - margin.left - margin.right;
+var chartWidth = function() { return (truewidth() - margin.left - margin.right); };
 
 // Get and filter today's data
 // var todayDT = new Date("Jul 7 2020");

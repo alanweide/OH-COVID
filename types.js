@@ -28,7 +28,7 @@ function Series(data, xScale, xArg, yScale, yArg, cum, color, defined = (d => tr
     this.y = (d, i) => this.yScale(this.yArg(d, i));
 }
 
-function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: chartWidth, height: chartHeight }) {
+function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: chartWidth(), height: chartHeight }) {
     this.xAxis = xAxis;
     this.yAxis = yAxis;
     this.xGrid = xGrid;
@@ -36,8 +36,11 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
     this.series = series;
     this.chartTitle = chartTitle;
     this.dim = dim;
+    this.selection = null;
 
-    this.plot = function(selection) {
+    this.plot = function(selection, chartIdx) {
+        this.selection = selection;
+
         selection.selectAll("g").remove();
         selection.selectAll("text").remove();
         selection.selectAll("path").remove();
@@ -80,6 +83,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
         titleSel //.enter()
             .append("text") //.merge(titleSel)
             .attr("transform", translate(this.dim.width / 2, -15))
+            // .attr("x", "50%").attr("y", "-15")
             .attr("text-anchor", "middle")
             .attr("class", "title")
             .text(this.chartTitle);
@@ -100,47 +104,6 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: ch
                 );
         });
 
-        // var seriesSel = selection.selectAll("#series");
-        // seriesSel.data(this.series).join(
-        //     enter => enter.append("path")
-        //     .attr("id", "series")
-        //     .attr("fill", "none")
-        //     .attr("stroke", s => s.color)
-        //     .attr("stroke-width", 1.5)
-        //     .attr("d", d3.line()
-        //         .defined(s => s.defined)
-        //         .x(s => s.x)
-        //         .y(s => s.y)
-        //     )
-        //     .datum(s => s.data),
-        //     update => update
-        //     .attr("stroke", s => s.color)
-        //     .attr("d", d3.line()
-        //         .defined(s => s.defined)
-        //         .x(s => s.x)
-        //         .y(s => s.y)
-        //     )
-        //     .datum(s => s.data),
-        //     exit => exit.remove()
-        // );
-
-        // series.forEach(function(s, i) {
-        //     var seriesSel = selection.selectAll(`#series${i}`);
-        //     seriesSel.enter()
-        //         .append("path").merge(seriesSel)
-        //         .datum(s.data)
-        //         .attr("id", (d, i) => `series${i}`)
-        //         .attr("fill", "none")
-        //         .attr("stroke", s.color)
-        //         .attr("stroke-width", 1.5)
-        //         .attr("d", d3.line()
-        //             .defined(s.defined)
-        //             .x(s.x)
-        //             .y(s.y)
-        //         )
-        //         .exit().remove();
-        // });
-
-        this.selection = selection;
+        setupTooltips(this, chartIdx);
     }
 }

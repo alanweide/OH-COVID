@@ -40,10 +40,9 @@ function colorLuminance(hex, lum) {
     lum = lum || 0;
 
     // convert to decimal and change luminosity
-    var rgb = "#",
-        c, i;
-    for (i = 0; i < 3; i++) {
-        c = parseInt(hex.substr(i * 2, 2), 16);
+    var rgb = "#";
+    for (var i = 0; i < 3; i++) {
+        var c = parseInt(hex.substr(i * 2, 2), 16);
         c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
         rgb += ("00" + c).substr(c.length);
     }
@@ -208,7 +207,7 @@ function generateCharts(chartedCounties) {
     // Set the scales
     var xScale = d3.scaleTime()
         .domain(d3.extent(cleanData, d => d.date))
-        .range([0, chartWidth]);
+        .range([0, chartWidth()]);
     var yScaleCases = d3.scaleLinear()
         .domain([0, d3.max(cleanData, d => +d.statewide.daily.cases)]).nice()
         .range([chartHeight, 0]);
@@ -231,8 +230,11 @@ function generateCharts(chartedCounties) {
     var yGrids = 10;
 
     // Define the axes
+    var firstFifteenth = d3.timeDay.filter(d => (d.getDate() === 1 || d.getDate() === 16));
     var xAxis = d3.axisBottom().scale(xScale)
-        .ticks(d3.timeMonth);
+        .ticks(firstFifteenth)
+        // .ticks(d3.timeWeek);
+        .tickFormat(d3.timeFormat("%b %d, %Y"));
 
     var yAxisCases = d3.axisLeft().scale(yScaleCases);
     var yAxisDeaths = d3.axisLeft().scale(yScaleDeaths);
@@ -341,23 +343,10 @@ function updateCharts(charts) {
         .attr("id", "chart")
         .attr("transform", (d, i) => translate(margin.left, margin.top + i * (chartHeight + margin.middle)))
         .style("margin", 0)
-        .each(function(d) {
-            console.log(`Plotting chart ${d.chartTitle}`);
-            d.plot(d3.select(this));
+        .each(function(d, i) {
+            d.plot(d3.select(this), i);
         })
         .exit().remove();
-    // charts.forEach((d, i) => {
-    //     var group = svg.append("g")
-    //         .attr("id", `chart${i}`)
-    //         .attr("transform", translate(margin.left, margin.top + i * (chartHeight + margin.middle)))
-    //         .style("margin", 0);
-
-    //     d.plot(group);
-    // });
-
-    setupTooltips(charts);
-
-    console.log("Done.")
 }
 
 function getDataAndDrawCharts(endingDate) {
@@ -370,212 +359,207 @@ function getDataAndDrawCharts(endingDate) {
     });
 }
 
-function setupTooltips(charts) {
-    charts.forEach((chart, chartIdx) => {
+function setupTooltips(chart, chartIdx) {
+    chart.selection.append("line")
+        .attr("id", "mark")
+        .style("stroke", "black")
+        .style("stroke-width", 1)
+        .style("opacity", 0);
 
-        chart.selection.append("line")
-            .attr("id", "mark")
-            .style("stroke", "black")
-            .style("stroke-width", 1)
-            .style("opacity", 0);
+    var overlay = chart.selection.append("g")
+        .attr("id", "overlay")
+    overlay.append("rect")
+        .attr("x", 0).attr("y", 0)
+        .attr("width", chart.dim.width).attr("height", chart.dim.height)
+        .style("opacity", 0);
 
-        var overlay = chart.selection.append("g")
-            .attr("id", `overlay${chartIdx}`)
-            // .attr("transform", translate(10, 10));
-        overlay.append("rect")
-            .attr("x", 0).attr("y", 0)
-            .attr("width", chart.dim.width).attr("height", chart.dim.height)
-            .style("opacity", 0);
+    var tooltip = overlay.append("g")
+        .attr("id", "tooltip")
+        .style("pointer-events", "none");
 
-        var tooltip = overlay.append("g")
-            .attr("id", `tooltip${chartIdx}`)
-            .style("pointer-events", "none");
+    let series0 = chart.series[0];
+    var tooltipData = [
+        function(xCoord) {
+            var rawDate = series0.xScale.invert(xCoord);
+            rawDate.setHours(rawDate.getHours() + 12);
+            var roundDate = new Date(rawDate.toDateString());
 
-        let series0 = chart.series[0];
-        var tooltipData = [
-            function(xCoord) {
-                var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setHours(rawDate.getHours() + 12);
-                var roundDate = new Date(rawDate.toDateString());
+            return `Selected Date: ${roundDate.toDateString()}`;
+        },
+        function(xCoord) {
+            var rawDate = series0.xScale.invert(xCoord);
+            rawDate.setHours(rawDate.getHours() + 12);
+            var roundDate = new Date(rawDate.toDateString());
 
-                return `Selected Date: ${roundDate.toDateString()}`;
-            },
-            function(xCoord) {
-                var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setHours(rawDate.getHours() + 12);
-                var roundDate = new Date(rawDate.toDateString());
+            var startDate = series0.data[0].date;
+            var startDateRound = new Date(startDate.toDateString());
+            var timeDiff = roundDate.getTime() - startDateRound.getTime();
+            var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
-                var startDate = series0.data[0].date;
-                var startDateRound = new Date(startDate.toDateString());
-                var timeDiff = roundDate.getTime() - startDateRound.getTime();
-                var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
+            var value = series0.yArg(series0.data[dayIdx]);
 
-                var value = series0.yArg(series0.data[dayIdx]);
+            return `${chart.chartTitle}: ${value}`;
+        },
+        function(xCoord) {
+            var rawDate = series0.xScale.invert(xCoord);
+            rawDate.setHours(rawDate.getHours() + 12);
+            var roundDate = new Date(rawDate.toDateString());
 
-                return `${chart.chartTitle}: ${value}`;
-            },
-            function(xCoord) {
-                var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setHours(rawDate.getHours() + 12);
-                var roundDate = new Date(rawDate.toDateString());
+            var startDate = series0.data[0].date;
+            var startDateRound = new Date(startDate.toDateString());
+            var timeDiff = roundDate.getTime() - startDateRound.getTime();
+            var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
-                var startDate = series0.data[0].date;
-                var startDateRound = new Date(startDate.toDateString());
-                var timeDiff = roundDate.getTime() - startDateRound.getTime();
-                var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
+            var value = Math.round(chart.series[1].yArg(chart.series[1].data[dayIdx]));
 
-                var value = Math.round(chart.series[1].yArg(chart.series[1].data[dayIdx]));
+            return `7-day Moving Average: ${!isNaN(value) ? value : 0}`;
+        },
+        function(xCoord) {
+            var rawDate = series0.xScale.invert(xCoord);
+            rawDate.setHours(rawDate.getHours() + 12);
+            var roundDate = new Date(rawDate.toDateString());
 
-                return `7-day Moving Average: ${!isNaN(value) ? value : 0}`;
-            },
-            function(xCoord) {
-                var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setHours(rawDate.getHours() + 12);
-                var roundDate = new Date(rawDate.toDateString());
+            var startDate = series0.data[0].date;
+            var startDateRound = new Date(startDate.toDateString());
+            var timeDiff = roundDate.getTime() - startDateRound.getTime();
+            var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
-                var startDate = series0.data[0].date;
-                var startDateRound = new Date(startDate.toDateString());
-                var timeDiff = roundDate.getTime() - startDateRound.getTime();
-                var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
+            var value = chart.series[0]
+                .cum(chart.series[0].data[dayIdx]);
 
-                var value = chart.series[0]
-                    .cum(chart.series[0].data[dayIdx]);
+            return `Cumulative Value: ${!isNaN(value) ? value : 0}`;
+        }
+    ];
 
-                return `Cumulative Value: ${!isNaN(value) ? value : 0}`;
-            }
-        ];
+    var markLocs = [
+        xCoord => {
+            var rawDate = series0.xScale.invert(xCoord);
+            rawDate.setHours(rawDate.getHours() + 12);
+            var roundDate = new Date(rawDate.toDateString());
 
-        var markLocs = [
-            xCoord => {
-                var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setHours(rawDate.getHours() + 12);
-                var roundDate = new Date(rawDate.toDateString());
+            var startDate = series0.data[0].date;
+            var startDateRound = new Date(startDate.toDateString());
+            var timeDiff = roundDate.getTime() - startDateRound.getTime();
+            var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
-                var startDate = series0.data[0].date;
-                var startDateRound = new Date(startDate.toDateString());
-                var timeDiff = roundDate.getTime() - startDateRound.getTime();
-                var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
+            var circleX = chart.series[0].xScale(roundDate);
+            var circleY = chart.series[0].yScale(chart.series[0].yArg(chart.series[0].data[dayIdx]))
 
-                var circleX = chart.series[0].xScale(roundDate);
-                var circleY = chart.series[0].yScale(chart.series[0].yArg(chart.series[0].data[dayIdx]))
+            let coords = [typeof circleX === 'undefined' ? 0 : circleX, typeof circleY === 'undefined' ? chart.dim.height : circleY];
+            return coords;
+        },
+        xCoord => {
+            var rawDate = series0.xScale.invert(xCoord);
+            rawDate.setHours(rawDate.getHours() + 12);
+            var roundDate = new Date(rawDate.toDateString());
 
-                let coords = [typeof circleX === 'undefined' ? 0 : circleX, typeof circleY === 'undefined' ? chart.dim.height : circleY];
-                return coords;
-            },
-            xCoord => {
-                var rawDate = series0.xScale.invert(xCoord);
-                rawDate.setHours(rawDate.getHours() + 12);
-                var roundDate = new Date(rawDate.toDateString());
+            var startDate = series0.data[0].date;
+            var startDateRound = new Date(startDate.toDateString());
+            var timeDiff = roundDate.getTime() - startDateRound.getTime();
+            var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
-                var startDate = series0.data[0].date;
-                var startDateRound = new Date(startDate.toDateString());
-                var timeDiff = roundDate.getTime() - startDateRound.getTime();
-                var dayIdx = Math.round(timeDiff / (1000 * 60 * 60 * 24));
+            var circleX = chart.series[1].xScale(roundDate);
+            var circleY = chart.series[1].yScale(chart.series[1].yArg(chart.series[1].data[dayIdx]))
 
-                var circleX = chart.series[1].xScale(roundDate);
-                var circleY = chart.series[1].yScale(chart.series[1].yArg(chart.series[1].data[dayIdx]))
+            let coords = [typeof circleX === 'undefined' ? 0 : circleX, typeof circleY === 'undefined' ? chart.dim.height : circleY];
+            return coords;
+        }
+    ];
 
-                let coords = [typeof circleX === 'undefined' ? 0 : circleX, typeof circleY === 'undefined' ? chart.dim.height : circleY];
-                return coords;
-            }
-        ];
+    var tooltipScale = d3.scaleBand().range([10, 100]).domain(arrayFromRange(0, tooltipData.length)).paddingOuter(0.25).align(0.5);
 
-        var tooltipScale = d3.scaleBand().range([10, 100]).domain(arrayFromRange(0, tooltipData.length)).paddingOuter(0.5);
+    var xForCenteredRect = function(mouseX, rectWidth, containerWidth, minPadding) {
+        return Math.max(minPadding, Math.min(mouseX - (rectWidth / 2), containerWidth - minPadding - rectWidth));
+    };
 
-        var xForCenteredRect = function(mouseX, rectWidth, containerWidth, minPadding) {
-            return Math.max(minPadding, Math.min(mouseX - (rectWidth / 2), containerWidth - minPadding - rectWidth));
-        };
+    const tranDur = 50;
 
-        const tranDur = 50;
+    overlay.on("mouseover", function(d) {
+            var mouseX = d3.mouse(this)[0];
 
-        overlay.on("mouseover", function(d) {
-                var mouseX = d3.mouse(this)[0];
+            var markX = markLocs[0](mouseX)[0];
 
-                var markX = markLocs[0](mouseX)[0];
+            chart.selection.select("#mark")
+                .style("opacity", 0.7)
+                .attr("x1", markX).attr("x2", markX)
+                .attr("y1", 0).attr("y2", chart.dim.height);
 
-                chart.selection.select("#mark")
-                    .style("opacity", 0.7)
-                    .attr("x1", markX).attr("x2", markX)
-                    .attr("y1", 0).attr("y2", chart.dim.height);
+            var circles = chart.selection.selectAll("circle").data(markLocs)
+                .enter().append("circle");
 
-                var circles = chart.selection.selectAll("circle").data(markLocs)
-                    .enter().append("circle");
+            // overlay.select(`#tooltip${chartIdx}`).attr("x", mouseX);
 
-                // overlay.select(`#tooltip${chartIdx}`).attr("x", mouseX);
-
-                tooltip.append("rect")
-                    .attr("id", "ttBox")
-                    .attr("class", "legend-box")
-                    // .attr("filter", "url(#blur)")
-                    .attr("rx", 10).attr("ry", 10)
-                    .attr("height", tooltipScale.range()[1] - tooltipScale.range()[0]);
+            tooltip.append("rect")
+                .attr("id", "ttBox")
+                .attr("class", "legend-box")
+                .attr("rx", 10).attr("ry", 10)
+                .attr("y", tooltipScale.range()[0]).attr("height", tooltipScale.range()[1] - tooltipScale.range()[0]);
 
 
-                var ttText = tooltip.selectAll("text").data(tooltipData)
-                    .enter().append("text")
-                    .attr("y", (d, i) => tooltipScale(i) + 10)
-                    .attr("alignment-baseline", "middle")
-                    .style("font-weight", (d, i) => (i == 0) ? "bold" : "normal")
-                    .text(d => d(mouseX));
+            var ttText = tooltip.selectAll("text").data(tooltipData)
+                .enter().append("text")
+                .attr("y", (d, i) => tooltipScale(i) + (tooltipScale.bandwidth() / 2))
+                .attr("alignment-baseline", "middle")
+                .style("font-weight", (d, i) => (i == 0) ? "bold" : "normal")
+                .text(d => d(mouseX));
 
-                var maxTextWidth = d3.max(ttText.nodes(), d => d.getComputedTextLength());
-                var tooltipWidth = (isNaN(maxTextWidth) ? 0 : maxTextWidth + 16);
+            var maxTextWidth = d3.max(ttText.nodes(), d => d.getComputedTextLength());
+            var tooltipWidth = (isNaN(maxTextWidth) ? 0 : maxTextWidth + 16);
 
-                // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
+            // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
 
-                ttText.attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10) + 8);
+            ttText.attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10) + 8);
 
-                tooltip.select("#ttBox")
-                    .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10)).attr("y", 10)
-                    .attr("width", tooltipWidth);
+            tooltip.select("#ttBox")
+                .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10))
+                .attr("width", tooltipWidth);
 
-                circles
-                    .attr("cx", function(d) { return d(mouseX)[0]; })
-                    .attr("cy", function(d) {
-                        return d(mouseX)[1];
-                    })
-                    .attr("r", (d, i) => i == 0 ? 4 : 6)
-                    .style("fill", (d, i) => chart.series[i].color);
-            })
-            .on("mousemove", function(d, i) {
-                var mouseX = d3.mouse(this)[0];
+            circles
+                .attr("cx", function(d) { return d(mouseX)[0]; })
+                .attr("cy", function(d) {
+                    return d(mouseX)[1];
+                })
+                .attr("r", (d, i) => i == 0 ? 4 : 6)
+                .style("fill", (d, i) => chart.series[i].color);
+        })
+        .on("mousemove", function(d, i) {
+            var mouseX = d3.mouse(this)[0];
 
-                var markX = markLocs[0](mouseX)[0];
-                chart.selection.select("#mark")
-                    .transition().duration(tranDur)
-                    .attr("x1", markX).attr("x2", markX);
+            var markX = markLocs[0](mouseX)[0];
+            chart.selection.select("#mark")
+                .transition().duration(tranDur)
+                .attr("x1", markX).attr("x2", markX);
 
-                // overlay.select(`#tooltip${chartIdx}`).transition().duration(tranDur).attr("x", mouseX);
-                var ttText = tooltip.selectAll("text")
-                    .text(d => d(mouseX));
+            // overlay.select(`#tooltip${chartIdx}`).transition().duration(tranDur).attr("x", mouseX);
+            var ttText = tooltip.selectAll("text")
+                .text(d => d(mouseX));
 
-                var maxTextWidth = d3.max(ttText.nodes(), d => d.getComputedTextLength());
-                var tooltipWidth = (isNaN(maxTextWidth) ? 0 : maxTextWidth + 16);
+            var maxTextWidth = d3.max(ttText.nodes(), d => d.getComputedTextLength());
+            var tooltipWidth = (isNaN(maxTextWidth) ? 0 : maxTextWidth + 16);
 
-                // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
+            // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
 
-                var circles = chart.selection.selectAll("circle")
-                    .transition().duration(tranDur)
-                    .attr("cx", function(d) { return d(mouseX)[0]; })
-                    .attr("cy", function(d) {
-                        return d(mouseX)[1];
-                    });
+            var circles = chart.selection.selectAll("circle")
+                .transition().duration(tranDur)
+                .attr("cx", function(d) { return d(mouseX)[0]; })
+                .attr("cy", function(d) {
+                    return d(mouseX)[1];
+                });
 
-                ttText
-                    .transition().duration(tranDur)
-                    .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10) + 8);
+            ttText
+                .transition().duration(tranDur)
+                .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10) + 8);
 
-                tooltip.select("#ttBox")
-                    .transition().duration(tranDur)
-                    .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10))
-                    .attr("width", tooltipWidth);
-            })
-            .on("mouseout", function(d, i) {
-                // tooltip.transition().attr("opacity", 0);
-                tooltip.selectAll("rect").remove();
-                tooltip.selectAll("text").remove();
-                chart.selection.selectAll("#mark").style("opacity", 0);
-                chart.selection.selectAll("circle").remove();
-            });
-    });
+            tooltip.select("#ttBox")
+                .transition().duration(tranDur)
+                .attr("x", xForCenteredRect(mouseX, tooltipWidth, chart.dim.width, 10))
+                .attr("width", tooltipWidth);
+        })
+        .on("mouseout", function(d, i) {
+            // tooltip.transition().attr("opacity", 0);
+            tooltip.selectAll("rect").remove();
+            tooltip.selectAll("text").remove();
+            chart.selection.selectAll("#mark").style("opacity", 0);
+            chart.selection.selectAll("circle").remove();
+        });
 }
