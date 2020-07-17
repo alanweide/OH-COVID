@@ -6,6 +6,12 @@ var fullHeight = function() {
     return margin.top + (numCharts * chartHeight) + ((numCharts - 1) * margin.middle) + margin.bottom;
 }
 
+var colorscheme = "light";
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    colorscheme = "dark";
+    d3.select("body").attr("class", "dark-mode");
+}
+
 // Add the svg canvas
 var vis = d3.select("#vis");
 var svg = vis.append("svg").style("width", "100%").style("height", fullHeight);
