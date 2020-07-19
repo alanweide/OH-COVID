@@ -28,7 +28,7 @@ function Series(data, xScale, xArg, yScale, yArg, cum, color, defined = (d => tr
     this.y = (d, i) => this.yScale(this.yArg(d, i));
 }
 
-function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: chartWidth(), height: chartHeight }) {
+function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: columnWidths()[0], height: chartHeight }) {
     this.xAxis = xAxis;
     this.yAxis = yAxis;
     this.xGrid = xGrid;
