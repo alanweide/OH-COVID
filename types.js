@@ -14,6 +14,20 @@ function DateStat(date) {
     this.statewide = new DailyCumPair();
 }
 
+function AgeStat(category) {
+    this["category"] = category;
+    this["Unknown"] = 0;
+    this["0-19"] = 0;
+    this["20-29"] = 0;
+    this["30-39"] = 0;
+    this["40-49"] = 0;
+    this["50-59"] = 0;
+    this["60-69"] = 0;
+    this["70-79"] = 0;
+    this["80+"] = 0;
+    this["total"] = 0;
+}
+
 function Series(data, xScale, xArg, yScale, yArg, cum, color, defined = (d => true)) {
     this.data = data;
     this.xScale = xScale;

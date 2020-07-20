@@ -81,3 +81,14 @@ function movingAverage(values, N) {
     }
     return means;
 }
+
+function getDataAndDrawCharts(endingDate) {
+    d3.select("#subtitle").text("Date: " + endingDate.toDateOnlyString());
+
+    d3.csv(dataFileFromDate(endingDate)).then(d => {
+        // Remove footer row
+        d.pop();
+        drawDailyCharts(d, endingDate);
+        drawAgeDistCharts(d, endingDate);
+    });
+}

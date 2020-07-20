@@ -108,7 +108,7 @@ function collectData(d, today) {
 var dailyData;
 var cleanData;
 
-function drawCharts(data, date) {
+function drawDailyCharts(data, date) {
     dailyData = getDailyData(data);
     cleanData = collectData(dailyData, date);
 
@@ -265,16 +265,6 @@ function updateCharts(charts) {
             d.plot(d3.select(this), i);
         })
         .exit().remove();
-}
-
-function getDataAndDrawCharts(endingDate) {
-    d3.select("#subtitle").text("Date: " + endingDate.toDateOnlyString());
-
-    d3.csv(dataFileFromDate(endingDate)).then(d => {
-        // Remove footer row
-        d.pop();
-        return drawCharts(d, endingDate);
-    });
 }
 
 function setupTooltips(chart, chartIdx) {
