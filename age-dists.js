@@ -3,24 +3,24 @@ let categories = ["Cases", "Hospitalizations", "Deaths"];
 const legendHeight = 100
 
 function getAgeData(rawData) {
-    var ageStats = [];
+    var ageData = [];
     categories.forEach((e, i) => {
-        ageStats.push(new AgeStat(e))
+        ageData.push(new AgeStat(e))
     });
     rawData.forEach(e => {
         let eCases = +e["Case Count"];
         let eHosps = +e["Hospitalized Count"];
         let eDeaths = +e["Death Count"];
 
-        ageStats[0][e["Age Range"]] += eCases;
-        ageStats[1][e["Age Range"]] += eHosps;
-        ageStats[2][e["Age Range"]] += eDeaths;
+        ageData[0][e["Age Range"]] += eCases;
+        ageData[1][e["Age Range"]] += eHosps;
+        ageData[2][e["Age Range"]] += eDeaths;
 
-        ageStats[0].total += eCases;
-        ageStats[1].total += eHosps;
-        ageStats[2].total += eDeaths;
+        ageData[0].total += eCases;
+        ageData[1].total += eHosps;
+        ageData[2].total += eDeaths;
     });
-    return ageStats;
+    return ageData;
 }
 
 function drawAgeDistCharts(data, date) {
@@ -72,11 +72,11 @@ function drawAgeDistCharts(data, date) {
         .attr("class", "title")
         .text("Distribution of Severity by Age");
 
-
     chartsvg.selectAll("#stack").data(stackLayout(ageData))
         .enter()
         .append("g").attr("id", "stack")
         .attr("fill", d => colorScale(d))
+        .attr("stroke", d => colorScale(d))
         .selectAll("#bar").data(stack => stack)
         .enter()
         // .each(d => console.log(d))

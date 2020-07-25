@@ -67,7 +67,7 @@ Date.prototype.toDateOnlyString = function() {
     return this.toISOString().split('T')[0];
 }
 
-function movingAverage(values, N) {
+function movingAverage(values, N, backfill = true) {
     let i = 0;
     let sum = 0;
     const means = new Float64Array(values.length).fill(NaN);
@@ -79,7 +79,18 @@ function movingAverage(values, N) {
         means[i] = sum / N;
         sum -= values[i - N + 1];
     }
+    if (backfill) {
+        for (let i = 0; i < N; i++) {
+            means[i] = means[N];
+        }
+    }
     return means;
+}
+
+function transpose(a) {
+    return Object.keys(a[0]).map(function(c) {
+        return a.map(function(r) { return r[c]; });
+    });
 }
 
 function getDataAndDrawCharts(endingDate) {

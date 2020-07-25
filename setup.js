@@ -1,4 +1,4 @@
-var numCharts = 2;
+var numCharts = 3;
 var chartHeight = 360;
 
 var svgMargin = { top: 50, right: 50, bottom: 50, left: 50, middleVert: 100, middleHoriz: 50 };
