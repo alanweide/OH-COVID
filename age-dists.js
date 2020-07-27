@@ -70,7 +70,7 @@ function drawAgeDistCharts(data, date) {
         .attr("transform", translate(columnWidths()[1] / 2, -15))
         .attr("text-anchor", "middle")
         .attr("class", "title")
-        .text("Distribution of Severity by Age");
+        .text("Cumulative Distribution of Severity by Age");
 
     chartsvg.selectAll("#stack").data(stackLayout(ageData))
         .enter()
@@ -87,5 +87,4 @@ function drawAgeDistCharts(data, date) {
         .attr("y", d => Math.round(ageChartHeight * ageDistsYScale(d[1])) / ageChartHeight)
         .attr("width", caseHospDeathXScale.bandwidth())
         .attr("height", d => ageDistsYScale(d[0]) - ageDistsYScale(d[1]))
-
 }

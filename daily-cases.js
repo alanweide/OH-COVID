@@ -9,7 +9,7 @@ function updateCountyHosps(daily, datum) {
     if (!(datum.daily in daily.counties)) {
         daily.counties[datum.county] = new DailyCumPair();
     }
-    daily.counties[datum.county].daily.hospitalizations += datum.hospitalizations;
+    daily.counties[datum.county].daily.hospitalizations += datum.hospCount;
 }
 
 function udpateCountyDeaths(daily, datum) {
@@ -73,15 +73,15 @@ function getDailyData(data) {
         }
 
         // Hospitalizations
-        if (isValidDate(datum.admissionDate)) {
-            if (!(datum.admissionDate in dailyData)) {
-                dailyData[datum.admissionDate] = new DateStat(datum.admissionDate);
-            }
-            dailyData[datum.admissionDate].statewide.daily.hospitalizations += datum.hospCount;
-            dailyData[datum.onset].agedists.hospitalizations[datum.age] += datum.hospCount;
-            dailyData[datum.onset].agedists.hospitalizations.total += datum.hospCount;
-            updateCountyHosps(dailyData[datum.admissionDate], datum);
-        }
+        // if (isValidDate(datum.admissionDate)) {
+        //     if (!(datum.admissionDate in dailyData)) {
+        //         dailyData[datum.admissionDate] = new DateStat(datum.admissionDate);
+        //     }
+        //     dailyData[datum.admissionDate].statewide.daily.hospitalizations += datum.hospCount;
+        //     dailyData[datum.onset].agedists.hospitalizations[datum.age] += datum.hospCount;
+        //     dailyData[datum.onset].agedists.hospitalizations.total += datum.hospCount;
+        //     updateCountyHosps(dailyData[datum.admissionDate], datum);
+        // }
 
         // Deaths
         if (isValidDate(datum.deathDate)) {
@@ -109,10 +109,11 @@ function collectData(d, today) {
     var cumCounties = {};
 
     // Compute cumulative totals
-    data.forEach(function(datum, i) {
+    data.forEach((datum, i) => {
         cumulative.cases += datum.statewide.daily.cases;
+        cumulative.hospitalizations += datum.statewide.daily.hospitalizations;
         cumulative.deaths += datum.statewide.daily.deaths;
-        datum.cumulative = new DataPoint(cumulative.cases, cumulative.deaths);
+        datum.cumulative = new DataPoint(cumulative.cases, cumulative.hospitalizations, cumulative.deaths);
         for (var county in {...datum.counties, ...cumCounties }) {
             if (!(county in cumCounties)) {
                 cumCounties[county] = new DataPoint();
@@ -120,8 +121,9 @@ function collectData(d, today) {
                 datum.counties[county] = new DailyCumPair();
             }
             cumCounties[county].cases += datum.counties[county].daily.cases;
+            cumCounties[county].hospitalizations += datum.counties[county].daily.hospitalizations;
             cumCounties[county].deaths += datum.counties[county].daily.deaths;
-            datum.counties[county].cumulative = new DataPoint(cumCounties[county].cases, cumCounties[county].deaths);
+            datum.counties[county].cumulative = new DataPoint(cumCounties[county].cases, cumCounties[county].hospitalizations, cumCounties[county].deaths);
         }
     });
     return data;
@@ -174,9 +176,9 @@ function generateCharts(chartedCounties) {
     var yGrids = 10;
 
     // Define the axes
-    var firstFifteenth = d3.timeDay.filter(d => (d.getDate() === 1 || d.getDate() === 16));
+    var biweekly = d3.timeDay.filter(d => (d.getDate() === 1 || d.getDate() === 16));
     var xAxis = d3.axisBottom().scale(xScale)
-        .ticks(firstFifteenth)
+        .ticks(biweekly)
         // .ticks(d3.timeWeek);
         .tickFormat(d3.timeFormat("%b %d, %Y"));
 
@@ -289,7 +291,7 @@ function generateCharts(chartedCounties) {
     // Age Distribution Chart
 
     var ageRanges = [];
-    for (r in new AgeStat("foobar")) {
+    for (r in new AgeStat("")) {
         if (r != "category" && r != "total") {
             ageRanges.push(r);
         }
