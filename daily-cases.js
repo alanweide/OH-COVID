@@ -1,3 +1,35 @@
+const milestones = [{
+        "date": new Date("March 22, 2020"),
+        "event": "Stay-at-Home Order Takes Effect"
+    },
+    {
+        "date": new Date("April 15, 2020"),
+        "event": "Anti-Lockdown Protests in Full Swing"
+    },
+    {
+        "date": new Date("May 1, 2020"),
+        "event": "Stay-at-Home Order Lifting Begins"
+    },
+    {
+        "date": new Date("May 19, 2020"),
+        "event": "Stay-at-Home Order Completely Lifted"
+    },
+    {
+        "date": new Date("May 28, 2020"),
+        "event": "BLM Protests Begin"
+    },
+    {
+        "date": new Date("July 7, 2020"),
+        "event": "High-Alert County Mask Mandate"
+    },
+    {
+        "date": new Date("July 23, 2020"),
+        "event": "Statewide Mask Mandate"
+    }
+];
+
+const prelimDataDelay = 14;
+
 function updateCountyCases(daily, datum) {
     if (!(datum.county in daily.counties)) {
         daily.counties[datum.county] = new DailyCumPair();
@@ -78,8 +110,8 @@ function getDailyData(data) {
         //         dailyData[datum.admissionDate] = new DateStat(datum.admissionDate);
         //     }
         //     dailyData[datum.admissionDate].statewide.daily.hospitalizations += datum.hospCount;
-        //     dailyData[datum.onset].agedists.hospitalizations[datum.age] += datum.hospCount;
-        //     dailyData[datum.onset].agedists.hospitalizations.total += datum.hospCount;
+        //     dailyData[datum.admissionDate].agedists.hospitalizations[datum.age] += datum.hospCount;
+        //     dailyData[datum.admissionDate].agedists.hospitalizations.total += datum.hospCount;
         //     updateCountyHosps(dailyData[datum.admissionDate], datum);
         // }
 
@@ -89,8 +121,8 @@ function getDailyData(data) {
                 dailyData[datum.deathDate] = new DateStat(datum.deathDate);
             }
             dailyData[datum.deathDate].statewide.daily.deaths += datum.deathCount;
-            dailyData[datum.onset].agedists.deaths[datum.age] += datum.deathCount;
-            dailyData[datum.onset].agedists.deaths.total += datum.deathCount;
+            dailyData[datum.deathDate].agedists.deaths[datum.age] += datum.deathCount;
+            dailyData[datum.deathDate].agedists.deaths.total += datum.deathCount;
             udpateCountyDeaths(dailyData[datum.deathDate], datum);
         }
     });
@@ -230,7 +262,7 @@ function generateCharts(chartedCounties) {
             make_x_gridlines,
             make_y_gridlines(countyYScaleCases(county)), [countyCasesSeries, countyCasesAverage],
             `Daily Cases (${county} County)`,
-            undefined, { "withTooltip": true }
+            undefined, { "withTooltip": true, "milestones": true }
         );
         countyCharts.push(countyCasesChart);
     });
@@ -258,7 +290,7 @@ function generateCharts(chartedCounties) {
         make_x_gridlines,
         make_y_gridlines(yScaleCases), [stateCasesSeries, stateCasesAverage],
         "Daily Cases (Statewide)",
-        undefined, { "withTooltip": true }
+        undefined, { "withTooltip": true, "milestones": true }
     );
 
     const stateDeathsSeries = new Series(
@@ -285,7 +317,7 @@ function generateCharts(chartedCounties) {
         make_x_gridlines,
         make_y_gridlines(yScaleDeaths), [stateDeathsSeries, stateDeathsAvg],
         "Daily Deaths (Statewide)",
-        undefined, { "withTooltip": true }
+        undefined, { "withTooltip": true, "milestones": true }
     );
 
     // Age Distribution Chart

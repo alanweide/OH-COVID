@@ -106,8 +106,24 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
             .attr("class", "title")
             .text(this.chartTitle);
 
-        // Draw series
+        if (true || ops.prelimPeriod) {
+            let curDate = new Date(this.series[0].xScale.domain()[1]);
+            let prelimBegin = new Date(curDate);
+            prelimBegin.setDate(prelimBegin.getDate() - prelimDataDelay)
+            let x1 = this.series[0].xScale(prelimBegin);
+            let x2 = this.series[0].xScale(curDate);
+            let prelimGrp = selection.append("g").attr("id", "prelim").attr("transform", translate(x1, 0))
+            prelimGrp.append("rect") //.attr("id", "prelim")
+                // .attr("transform", translate(x1, 0))
+                .attr("width", x2 - x1).attr("height", this.dim.height)
+                .style("fill", "black").style("opacity", 0.2);
+            prelimGrp.append("text").attr("transform", translate((x2 - x1) / 2, 16))
+                .attr("text-anchor", "middle")
+                .text("Preliminary Data")
 
+        }
+
+        // Draw series
         var stacks;
         if (ops.stacked) {
             // Nest the data
@@ -190,18 +206,78 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
             }
         });
 
-        if (ops.withTooltip) {
-            selection.append("line")
-                .attr("id", "mark")
-                .style("stroke", "black")
-                .style("stroke-width", 1)
-                .style("opacity", 0);
+        var milestoneMouseover = function() {},
+            milestoneMouseout = function() {};
 
+        if (ops.milestones) {
+            let tickHeight = 10;
+            let milestoneX = d => this.series[0].xScale(d.date);
+            milestoneMarkers = selection.selectAll("#milestones").data(milestones)
+                .enter().append("g").attr("id", "milestones").attr("transform", translate(0, 0))
+            let milestoneOverlay = milestoneMarkers.append("rect").attr("id", (d, i) => `milestoneOverlay${i}`)
+                .attr("fill", "white").attr("opacity", 0)
+            let milestoneLines = milestoneMarkers.append("line").attr("id", (d, i) => `milestoneLine${i}`)
+                .attr("y1", this.dim.height - tickHeight).attr("y2", this.dim.height)
+                .attr("x1", milestoneX)
+                .attr("x2", milestoneX)
+                .attr("stroke", "black").attr("stroke-width", 2)
+            let milestoneText = milestoneMarkers.append("text").attr("id", (d, i) => `milestoneText${i}`)
+                .attr("x", d => milestoneX(d) - 5).attr("y", this.dim.height)
+                .attr("transform", d => `rotate(-90, ${milestoneX(d) - 5}, ${this.dim.height})`)
+                // .style("writing-mode", "tb")
+                // .attr("text-anchor", "end")
+                .attr("opacity", 0)
+                .text(d => d.event)
+            milestoneOverlay
+                .attr("x", (d, i) => {
+                    let width = milestoneText.nodes()[i].getBBox().height;
+                    return milestoneX(d) - width - 2;
+                })
+                .attr("y", (d, i) => {
+                    let textLength = milestoneText.nodes()[i].getBBox().width;
+                    return this.dim.height - textLength
+                })
+                .attr("width", (d, i) => {
+                    let width = milestoneText.nodes()[i].getBBox().height;
+                    return width + 2;
+                })
+                .attr("height", (d, i) => {
+                    let textLength = milestoneText.nodes()[i].getBBox().width;
+                    return textLength
+                });
+
+            milestoneMouseover = (d, i) => {
+                milestoneOverlay.transition()
+                    .attr("opacity", 0.7)
+                milestoneText.transition()
+                    .attr("opacity", 1)
+                    // .attr("y", this.dim.height + 9)
+                milestoneLines.transition().attr("y1", 0)
+            }
+
+            milestoneMouseout = (d, i) => {
+                milestoneOverlay.transition()
+                    .attr("opacity", 0)
+                    // .attr("y", 0)
+                milestoneText.transition()
+                    .attr("opacity", 0)
+                    // .attr("y", 0);
+                milestoneLines.transition().attr("y1", this.dim.height - tickHeight)
+            }
+        }
+
+        if (ops.withTooltip) {
             var overlay = selection.append("g")
                 .attr("id", "overlay");
             overlay.append("rect")
                 .attr("x", 0).attr("y", 0)
                 .attr("width", dim.width).attr("height", dim.height)
+                .style("opacity", 0);
+
+            overlay.append("line")
+                .attr("id", "mark")
+                .style("stroke", "black")
+                .style("stroke-width", 1)
                 .style("opacity", 0);
 
             var tooltip = overlay.append("g")
@@ -310,10 +386,12 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
 
                     var markX = markLocs[0](mouseX)[0];
 
-                    var circles = selection.selectAll("circle").data(markLocs)
+                    var circles = overlay.selectAll("circle").data(markLocs)
                         .enter().append("circle");
 
-                    selection.select("#mark")
+                    milestoneMouseover();
+
+                    overlay.select("#mark")
                         .style("opacity", 0.7)
                         .attr("x1", markX).attr("x2", markX)
                         .attr("y1", 0).attr("y2", dim.height);
@@ -359,7 +437,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
 
                     var markX = markLocs[0](mouseX)[0];
 
-                    selection.select("#mark")
+                    overlay.select("#mark")
                         .transition().duration(tranDur)
                         .attr("x1", markX).attr("x2", markX);
 
@@ -372,7 +450,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
 
                     // var tooltipX = Math.max(10, Math.min(mouseX - (tooltipWidth / 2), chart.dim.width - 10 - tooltipWidth));
 
-                    selection.selectAll("circle")
+                    overlay.selectAll("circle")
                         .transition().duration(tranDur)
                         .attr("cx", function(d) { return d(mouseX)[0]; })
                         .attr("cy", function(d) {
@@ -392,14 +470,13 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                     // tooltip.transition().attr("opacity", 0);
                     tooltip.selectAll("rect").remove();
                     tooltip.selectAll("text").remove();
-                    selection.selectAll("#mark").style("opacity", 0);
-                    selection.selectAll("circle").remove();
+                    overlay.selectAll("#mark").style("opacity", 0);
+                    overlay.selectAll("circle").remove();
+                    milestoneMouseout();
                 });
         }
 
         if (ops.legend) {
-            console.log(`Drawing legend for ${chartTitle}`)
-
             const legendData = series.map((d, i) => { return { "name": d.name, "color": d.color } })
             legendData.pop();
             const legendScale = d3.scaleBand().range([dim.height / 2, 0]).domain(arrayFromRange(0, legendData.length)).paddingOuter(0.25) //.align(0.5);
