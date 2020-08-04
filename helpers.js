@@ -4,6 +4,22 @@ d3.selection.prototype.moveToFront = function() {
     });
 };
 
+Date.prototype.plusDays = function(days) {
+    var date = new Date(this.valueOf());
+    date.setDate(date.getDate() + days);
+    return date;
+}
+
+function getDates(startDate, stopDate) {
+    var dateArray = new Array();
+    var currentDate = startDate;
+    while (currentDate < stopDate) {
+        dateArray.push(new Date(currentDate));
+        currentDate = currentDate.plusDays(1);
+    }
+    return dateArray;
+}
+
 function arrayFromRange(start, end) {
     var list = [];
     for (var i = start; i < end; i++) {

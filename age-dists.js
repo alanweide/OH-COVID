@@ -81,9 +81,7 @@ function drawAgeDistCharts(data, date) {
         .enter()
         // .each(d => console.log(d))
         .append("rect").attr("id", "bar")
-        .attr("x", (d, i) => {
-            return caseHospDeathXScale(categories[i])
-        })
+        .attr("x", (d, i) => caseHospDeathXScale(categories[i]))
         .attr("y", d => Math.round(ageChartHeight * ageDistsYScale(d[1])) / ageChartHeight)
         .attr("width", caseHospDeathXScale.bandwidth())
         .attr("height", d => ageDistsYScale(d[0]) - ageDistsYScale(d[1]))

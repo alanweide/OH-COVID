@@ -30,7 +30,19 @@ function AgeStat(category) {
     this["total"] = 0;
 }
 
-function Series(data, xScale, xArg, yScale, yArg, cum, color, opacity = 1, name, defined = (d => true)) {
+function Series(
+    data,
+    xScale,
+    xArg,
+    yScale,
+    yArg,
+    cum,
+    color,
+    opacity = 1,
+    name,
+    defined = (d => true),
+    kind = "line"
+) {
     this.data = data;
     this.xScale = xScale;
     this.xArg = xArg;
@@ -41,6 +53,7 @@ function Series(data, xScale, xArg, yScale, yArg, cum, color, opacity = 1, name,
     this.opacity = opacity;
     this.name = name;
     this.defined = defined;
+    this.kind = kind;
 
     this.x = (d, i) => this.xScale(this.xArg(d, i));
     this.y = (d, i) => this.yScale(this.yArg(d, i));
@@ -143,9 +156,11 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
             stacks = stackLayout(combinedSeries);
         }
 
+        let chartHeight = this.dim.height;
+
         series.forEach(function(s, i) {
             if (ops.stacked) {
-                if (ops.filled) {
+                if (s.kind === "area") {
                     selection.selectAll("#area")
                         .data(stacks)
                         .enter()
@@ -163,7 +178,24 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                             .y0(d => s.yScale(d[0]))
                             .y1(d => s.yScale(d[1]))
                         );
-                } else {
+                } else if (s.kind === "line") {
+                    selection.selectAll("#line")
+                        .data(stacks)
+                        .enter()
+                        .append("path")
+                        .attr("id", "line")
+                        // .attr("id", (d, i) => `series${i}`)
+                        .attr("fill", "none")
+                        .attr("stroke", s.color)
+                        .attr("opacity", s.opacity)
+                        .attr("stroke-width", 1.5)
+                        .attr("data-legend", s.name)
+                        .attr("d", d3.line()
+                            .defined(s.defined)
+                            .x(s.x)
+                            .y(d => s.yScale(d[0]))
+                        );
+                } else if (s.kind === "column") {
                     selection.selectAll("#line")
                         .data(stacks)
                         .enter()
@@ -182,14 +214,13 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                         );
                 }
             } else {
-                if (ops.filled) {
+                if (s.kind === "area") {
                     selection.append("path")
                         .datum(s.data)
                         // .attr("id", (d, i) => `series${i}`)
                         .attr("fill", s.color)
                         .attr("stroke", s.color)
                         .attr("opacity", s.opacity)
-                        // .attr("stroke-width", 1.5)
                         .attr("data-legend", s.name)
                         .attr("d", d3.area()
                             .defined(s.defined)
@@ -197,20 +228,43 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                             .y0(d => s.yScale(0))
                             .y1(s.y)
                         );
-                } else {
+                } else if (s.kind === "line") {
                     selection.append("path")
                         .datum(s.data)
-                        // .attr("id", (d, i) => `series${i}`)
                         .attr("fill", "none")
                         .attr("stroke", s.color)
                         .attr("opacity", s.opacity)
-                        .attr("stroke-width", 1.5)
+                        .attr("stroke-width", (s.opacity == 1) ? 3 : 1.5)
                         .attr("data-legend", s.name)
                         .attr("d", d3.line()
                             .defined(s.defined)
                             .x(s.x)
                             .y(s.y)
                         );
+                } else if (s.kind === "column") {
+                    let padding = 0.5;
+                    let xDom = s.xScale.domain();
+                    let bandDom = getDates(xDom[0], xDom[1])
+                    let xScaleBand = d3.scaleBand()
+                        .domain(bandDom)
+                        .range(s.xScale.range())
+                        .paddingInner(padding)
+                        .paddingOuter(padding / 2)
+                        // .align(1.5)
+                    offset = xScaleBand.step() / 2;
+                    let xBand = (d, i) => xScaleBand(s.xArg(d, i))
+                    selection.append("g").selectAll("rect").data(s.data)
+                        .enter().append("rect")
+                        .attr("fill", s.color).attr("stroke", s.color).attr("opacity", s.opacity)
+                        .attr("x", (d, j) => {
+                            if (isNaN(xBand(d, j) - offset)) {
+                                return -xScaleBand.bandwidth() / 2;
+                            }
+                            return xBand(d, j) - offset
+                        })
+                        .attr("y", s.y)
+                        .attr("width", xScaleBand.bandwidth())
+                        .attr("height", (d, j) => chartHeight - s.y(d, j))
                 }
             }
         });

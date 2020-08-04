@@ -238,6 +238,8 @@ function generateCharts(chartedCounties) {
             .ticks(yGrids);
     }
 
+    let transluscent = 0.2;
+
     const countyCharts = [];
     var sortedCounties = Array.from(chartedCounties.values()).sort();
     sortedCounties.forEach(function(county, i) {
@@ -248,8 +250,8 @@ function generateCharts(chartedCounties) {
             xScale, d => d.date,
             countyYScaleCases(county), d => (county in d.counties ? d.counties[county].daily.cases : 0),
             d => (county in d.counties ? d.counties[county].cumulative.cases : 0),
-            colorLuminance(color, -0.6), 0.5,
-            "Daily cases"
+            colorLuminance(color, -0.6), transluscent,
+            "Daily cases", undefined, "column"
         );
         const countyCasesAverage = new Series(
             movingAverage(cleanData.map(d => {
@@ -263,7 +265,7 @@ function generateCharts(chartedCounties) {
             x => 0,
             colorLuminance(color, -0.1), 1,
             "7-day moving average",
-            d => !isNaN(d));
+            d => !isNaN(d), "line");
         const countyCasesChart = new Chart(
             xAxis,
             d3.axisLeft().scale(countyYScaleCases(county)),
@@ -280,8 +282,8 @@ function generateCharts(chartedCounties) {
         xScale, d => d.date,
         yScaleCases, d => (d.statewide.daily.cases),
         d => d.cumulative.cases,
-        "steelblue", 1,
-        "Daily cases"
+        "steelblue", transluscent,
+        "Daily cases", undefined, "column"
     );
     const stateCasesAverage = new Series(
         movingAverage(cleanData.map(d => d.statewide.daily.cases), 7),
@@ -290,7 +292,7 @@ function generateCharts(chartedCounties) {
         d => 0,
         "green", 1,
         "7-day moving average",
-        d => !isNaN(d)
+        d => !isNaN(d), "line"
     );
     const stateCasesChart = new Chart(
         xAxis,
@@ -306,8 +308,8 @@ function generateCharts(chartedCounties) {
         xScale, d => d.date,
         yScaleDeaths, d => (d.statewide.daily.deaths),
         d => d.cumulative.deaths,
-        "#303030",
-        "Daily deaths"
+        "#303030", transluscent,
+        "Daily deaths", undefined, "line"
     );
     const stateDeathsAvg = new Series(
         movingAverage(cleanData.map(d => d.statewide.daily.deaths), 7),
@@ -315,9 +317,9 @@ function generateCharts(chartedCounties) {
         xScale, (d, i) => cleanData[i].date,
         yScaleDeaths, d => (d),
         d => 0,
-        "#A0A0A0",
+        "#808080", 1,
         "7-day moving average",
-        d => !isNaN(d)
+        d => !isNaN(d), "line"
     );
     const stateDeathsChart = new Chart(
         xAxis,
@@ -363,7 +365,7 @@ function generateCharts(chartedCounties) {
             d => 0,
             ageColors[i], 1,
             ageRanges[i],
-            d => !(isNaN(d[0]) || isNaN(d[1]))
+            d => !(isNaN(d[0]) || isNaN(d[1])), "area"
         ))
     });
 
