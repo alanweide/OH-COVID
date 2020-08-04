@@ -262,7 +262,7 @@ function generateCharts(chartedCounties) {
             make_x_gridlines,
             make_y_gridlines(countyYScaleCases(county)), [countyCasesSeries, countyCasesAverage],
             `Daily Cases (${county} County)`,
-            undefined, { "withTooltip": true, "milestones": true }
+            undefined, { "withTooltip": true, "milestones": true, "prelimPeriod": true }
         );
         countyCharts.push(countyCasesChart);
     });
@@ -290,7 +290,7 @@ function generateCharts(chartedCounties) {
         make_x_gridlines,
         make_y_gridlines(yScaleCases), [stateCasesSeries, stateCasesAverage],
         "Daily Cases (Statewide)",
-        undefined, { "withTooltip": true, "milestones": true }
+        undefined, { "withTooltip": true, "milestones": true, "prelimPeriod": true }
     );
 
     const stateDeathsSeries = new Series(
@@ -317,7 +317,7 @@ function generateCharts(chartedCounties) {
         make_x_gridlines,
         make_y_gridlines(yScaleDeaths), [stateDeathsSeries, stateDeathsAvg],
         "Daily Deaths (Statewide)",
-        undefined, { "withTooltip": true, "milestones": true }
+        undefined, { "withTooltip": true, "prelimPeriod": true }
     );
 
     // Age Distribution Chart

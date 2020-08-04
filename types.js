@@ -106,7 +106,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
             .attr("class", "title")
             .text(this.chartTitle);
 
-        if (true || ops.prelimPeriod) {
+        if (ops.prelimPeriod) {
             let curDate = new Date(this.series[0].xScale.domain()[1]);
             let prelimBegin = new Date(curDate);
             prelimBegin.setDate(prelimBegin.getDate() - prelimDataDelay)
@@ -117,9 +117,13 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                 // .attr("transform", translate(x1, 0))
                 .attr("width", x2 - x1).attr("height", this.dim.height)
                 .style("fill", "black").style("opacity", 0.2);
-            prelimGrp.append("text").attr("transform", translate((x2 - x1) / 2, 16))
+            let prelimText = prelimGrp.append("text").attr("transform", translate((x2 - x1) / 2, 16))
                 .attr("text-anchor", "middle")
                 .text("Preliminary Data")
+            prelimGrp.append("text").attr("transform", translate((x2 - x1) / 2, 16 + prelimText.nodes()[0].getBBox().height))
+                .attr("text-anchor", "middle")
+                .text("(14 days)")
+
 
         }
 
