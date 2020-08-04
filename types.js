@@ -30,7 +30,7 @@ function AgeStat(category) {
     this["total"] = 0;
 }
 
-function Series(data, xScale, xArg, yScale, yArg, cum, color, name, defined = (d => true)) {
+function Series(data, xScale, xArg, yScale, yArg, cum, color, opacity = 1, name, defined = (d => true)) {
     this.data = data;
     this.xScale = xScale;
     this.xArg = xArg;
@@ -38,6 +38,7 @@ function Series(data, xScale, xArg, yScale, yArg, cum, color, name, defined = (d
     this.yArg = yArg;
     this.cum = cum;
     this.color = color;
+    this.opacity = opacity;
     this.name = name;
     this.defined = defined;
 
@@ -153,6 +154,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                         // .attr("id", (d, i) => `series${i}`)
                         .attr("fill", (d, i) => series[i].color)
                         .attr("stroke", (d, i) => series[i].color)
+                        .attr("opacity", (d, i) => series[i].opacity)
                         // .attr("stroke-width", 1.5)
                         .attr("data-legend", (d, i) => series[i].name)
                         .attr("d", d3.area()
@@ -170,6 +172,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                         // .attr("id", (d, i) => `series${i}`)
                         .attr("fill", "none")
                         .attr("stroke", s.color)
+                        .attr("opacity", s.opacity)
                         .attr("stroke-width", 1.5)
                         .attr("data-legend", s.name)
                         .attr("d", d3.line()
@@ -184,7 +187,8 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                         .datum(s.data)
                         // .attr("id", (d, i) => `series${i}`)
                         .attr("fill", s.color)
-                        // .attr("stroke", s.color)
+                        .attr("stroke", s.color)
+                        .attr("opacity", s.opacity)
                         // .attr("stroke-width", 1.5)
                         .attr("data-legend", s.name)
                         .attr("d", d3.area()
@@ -199,6 +203,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                         // .attr("id", (d, i) => `series${i}`)
                         .attr("fill", "none")
                         .attr("stroke", s.color)
+                        .attr("opacity", s.opacity)
                         .attr("stroke-width", 1.5)
                         .attr("data-legend", s.name)
                         .attr("d", d3.line()

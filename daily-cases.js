@@ -248,8 +248,8 @@ function generateCharts(chartedCounties) {
             xScale, d => d.date,
             countyYScaleCases(county), d => (county in d.counties ? d.counties[county].daily.cases : 0),
             d => (county in d.counties ? d.counties[county].cumulative.cases : 0),
-            colorLuminance(color, -0.6),
-            "Daily cases",
+            colorLuminance(color, -0.6), 0.5,
+            "Daily cases"
         );
         const countyCasesAverage = new Series(
             movingAverage(cleanData.map(d => {
@@ -261,7 +261,7 @@ function generateCharts(chartedCounties) {
             xScale, (d, i) => cleanData[i].date,
             countyYScaleCases(county), d => (d),
             x => 0,
-            colorLuminance(color, -0.1),
+            colorLuminance(color, -0.1), 1,
             "7-day moving average",
             d => !isNaN(d));
         const countyCasesChart = new Chart(
@@ -280,7 +280,7 @@ function generateCharts(chartedCounties) {
         xScale, d => d.date,
         yScaleCases, d => (d.statewide.daily.cases),
         d => d.cumulative.cases,
-        "steelblue",
+        "steelblue", 1,
         "Daily cases"
     );
     const stateCasesAverage = new Series(
@@ -288,7 +288,7 @@ function generateCharts(chartedCounties) {
         xScale, (d, i) => cleanData[i].date,
         yScaleCases, d => (d),
         d => 0,
-        "green",
+        "green", 1,
         "7-day moving average",
         d => !isNaN(d)
     );
@@ -351,7 +351,7 @@ function generateCharts(chartedCounties) {
         //     xScale, (d, i) => cleanData[i].date,
         //     yScaleAgeDists, d => (d.agedists.cases[ageRanges[i]] / d.agedists.cases.total),
         //     d => 0,
-        //     ageColors[i]
+        //     ageColors[i], 1
         // ))
 
         // Moving average distributions
@@ -361,7 +361,7 @@ function generateCharts(chartedCounties) {
             xScale, (d, i) => cleanData[i].date,
             yScaleAgeDists, d => d,
             d => 0,
-            ageColors[i],
+            ageColors[i], 1,
             ageRanges[i],
             d => !(isNaN(d[0]) || isNaN(d[1]))
         ))
