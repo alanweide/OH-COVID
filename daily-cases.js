@@ -19,8 +19,16 @@ const milestones = [{
         "event": "BLM Protests Begin"
     },
     {
+        "date": new Date("July 2, 2020"),
+        "event": "Kings Island Opens"
+    },
+    {
         "date": new Date("July 7, 2020"),
         "event": "High-Alert County Mask Mandate"
+    },
+    {
+        "date": new Date("July 9, 2020"),
+        "event": "Cedar Point Opens"
     },
     {
         "date": new Date("July 23, 2020"),
@@ -240,7 +248,7 @@ function generateCharts(chartedCounties) {
             xScale, d => d.date,
             countyYScaleCases(county), d => (county in d.counties ? d.counties[county].daily.cases : 0),
             d => (county in d.counties ? d.counties[county].cumulative.cases : 0),
-            colorLuminance(color, -0.5),
+            colorLuminance(color, -0.6),
             "Daily cases",
         );
         const countyCasesAverage = new Series(
@@ -253,7 +261,7 @@ function generateCharts(chartedCounties) {
             xScale, (d, i) => cleanData[i].date,
             countyYScaleCases(county), d => (d),
             x => 0,
-            color,
+            colorLuminance(color, -0.1),
             "7-day moving average",
             d => !isNaN(d));
         const countyCasesChart = new Chart(
@@ -317,7 +325,7 @@ function generateCharts(chartedCounties) {
         make_x_gridlines,
         make_y_gridlines(yScaleDeaths), [stateDeathsSeries, stateDeathsAvg],
         "Daily Deaths (Statewide)",
-        undefined, { "withTooltip": true, "prelimPeriod": true }
+        undefined, { "withTooltip": true, "prelimPeriod": true, "milestones": true }
     );
 
     // Age Distribution Chart
