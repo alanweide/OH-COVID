@@ -97,18 +97,18 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                 .tickSize(-this.dim.width)
                 .tickFormat(""));
 
-        // Draw axes
-        var xAxisSel = selection //.selectAll(".x-axis");
-        xAxisSel //.enter()
-            .append("g") //.merge(xAxisSel)
-            .attr("class", "x-axis")
-            .attr("transform", translate(0, this.dim.height))
-            .call(this.xAxis);
-        var yAxisSel = selection //.selectAll(".y-axis");
-        yAxisSel //.enter()
-            .append("g").merge(yAxisSel)
-            .attr("class", "y-axis")
-            .call(this.yAxis);
+        // // Draw axes
+        // var xAxisSel = selection //.selectAll(".x-axis");
+        // xAxisSel //.enter()
+        //     .append("g") //.merge(xAxisSel)
+        //     .attr("class", "x-axis")
+        //     .attr("transform", translate(0, this.dim.height))
+        //     .call(this.xAxis);
+        // var yAxisSel = selection //.selectAll(".y-axis");
+        // yAxisSel //.enter()
+        //     .append("g").merge(yAxisSel)
+        //     .attr("class", "y-axis")
+        //     .call(this.yAxis);
 
         // Draw chart title
         var titleSel = selection // .selectAll(".title");
@@ -268,6 +268,19 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                 }
             }
         });
+
+        // Draw axes
+        var xAxisSel = selection //.selectAll(".x-axis");
+        xAxisSel //.enter()
+            .append("g") //.merge(xAxisSel)
+            .attr("class", "x-axis")
+            .attr("transform", translate(0, this.dim.height))
+            .call(this.xAxis);
+        var yAxisSel = selection //.selectAll(".y-axis");
+        yAxisSel //.enter()
+            .append("g").merge(yAxisSel)
+            .attr("class", "y-axis")
+            .call(this.yAxis);
 
         var milestoneMouseover = function() {},
             milestoneMouseout = function() {};
@@ -540,8 +553,9 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
         }
 
         if (ops.legend) {
-            const legendData = series.map((d, i) => { return { "name": d.name, "color": d.color } })
-            legendData.pop();
+            const legendData = series
+                .map((d, i) => { return { "name": d.name, "color": d.color } })
+                .filter(d => d.name !== "Unknown");
             const legendScale = d3.scaleBand().range([dim.height / 2, 0]).domain(arrayFromRange(0, legendData.length)).paddingOuter(0.25) //.align(0.5);
 
             var legend = selection.append("g").attr("id", "legend").attr("transform", translate(10, 10));

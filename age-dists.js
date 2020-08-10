@@ -44,13 +44,13 @@ function drawAgeDistCharts(data, date) {
     var caseHospDeathXScale = d3.scaleBand()
         .domain(categories)
         .rangeRound([0, columnWidths()[1]])
-        // .paddingOuter(0.1);
+        // .paddingOuter(0.01);
 
     var ageDistsYScale = d3.scaleLinear().domain([1, 0]).rangeRound([0, ageChartHeight]);
     var colorScale = d3.scaleOrdinal().domain(ageRanges).range(ageColors);
 
-    var xAxes = [d3.axisBottom().scale(caseHospDeathXScale)];
-    var yAxes = [d3.axisLeft().scale(ageDistsYScale)];
+    var xAxis = d3.axisBottom().scale(caseHospDeathXScale);
+    var yAxis = d3.axisLeft().scale(ageDistsYScale);
 
     var stackLayout = d3.stack().keys(ageRanges).value((d, k) => d[k] / d.total);
 
@@ -58,13 +58,6 @@ function drawAgeDistCharts(data, date) {
         .attr("transform", translate(svgMargin.left + columnWidths()[0] + svgMargin.middleHoriz, svgMargin.top))
         .attr("width", columnWidths()[1])
         .attr("height", ageChartHeight)
-
-    chartsvg.append("g").attr("class", "x-axis")
-        .attr("transform", translate(0, ageChartHeight))
-        .call(xAxes[0])
-
-    chartsvg.append("g").attr("class", "y-axis")
-        .call(yAxes[0])
 
     chartsvg.append("text")
         .attr("transform", translate(columnWidths()[1] / 2, -15))
@@ -85,4 +78,43 @@ function drawAgeDistCharts(data, date) {
         .attr("y", d => Math.round(ageChartHeight * ageDistsYScale(d[1])) / ageChartHeight)
         .attr("width", caseHospDeathXScale.bandwidth())
         .attr("height", d => ageDistsYScale(d[0]) - ageDistsYScale(d[1]))
+
+    chartsvg.append("g").attr("class", "x-axis")
+        .attr("transform", translate(0, ageChartHeight))
+        .call(xAxis)
+
+    chartsvg.append("g").attr("class", "y-axis")
+        .call(yAxis)
+
+    const legendData = ageRanges
+        .map((d, i) => { return { "name": d, "color": colorScale(d) } })
+        .filter(d => d.name !== "Unknown");
+    const legendScale = d3.scaleBand().range([chartHeight / 2, 0]).domain(arrayFromRange(0, legendData.length)).paddingOuter(0.25) //.align(0.5);
+
+    var legend = chartsvg.append("g").attr("id", "legend").attr("transform", translate(10, 10));
+    var box = legend.append("rect")
+        .attr("id", "legendBox")
+        .attr("class", "legend-box")
+        .attr("rx", 10).attr("ry", 10)
+        .attr("height", chartHeight / 2);
+
+    var legItems = legend.selectAll("#legItem").data(legendData)
+        .enter().append("g")
+        .attr("transform", (d, i) => translate(8, legendScale(i) + (legendScale.bandwidth() / 2)));
+
+    let legRects = legItems.append("rect")
+        .attr("width", 8).attr("height", 8)
+        .attr("y", -4)
+        .attr("stroke", "black")
+        .attr("fill", d => d.color);
+    let legText = legItems.append("text")
+        .attr("x", 16) //.attr("y", 4)
+        .attr("alignment-baseline", "middle")
+        // .style("font-weight", (d, i) => (i == 0) ? "bold" : "normal")
+        .text(d => d.name)
+
+    var maxTextWidth = d3.max(legText.nodes(), d => d.getComputedTextLength());
+    var legendWidth = (isNaN(maxTextWidth) ? 0 : maxTextWidth + 36);
+    box.attr("width", legendWidth);
+
 }
