@@ -19,15 +19,15 @@ function DateStat(date) {
 function AgeStat(category) {
     this["category"] = category;
     this["Unknown"] = 0;
-    this["0-19"] = 0;
-    this["20-29"] = 0;
-    this["30-39"] = 0;
-    this["40-49"] = 0;
-    this["50-59"] = 0;
-    this["60-69"] = 0;
-    this["70-79"] = 0;
-    this["80+"] = 0;
-    this["total"] = 0;
+    this["0-19"] = 1;
+    this["20-29"] = 1;
+    this["30-39"] = 1;
+    this["40-49"] = 1;
+    this["50-59"] = 1;
+    this["60-69"] = 1;
+    this["70-79"] = 1;
+    this["80+"] = 1;
+    this["total"] = 8;
 }
 
 function Series(
@@ -258,7 +258,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                         .attr("fill", s.color).attr("stroke", s.color).attr("opacity", s.opacity)
                         .attr("x", (d, j) => {
                             if (isNaN(xBand(d, j) - offset)) {
-                                return -xScaleBand.bandwidth() / 2;
+                                return dim.width - xScaleBand.bandwidth() / 2;
                             }
                             return xBand(d, j) - offset
                         })

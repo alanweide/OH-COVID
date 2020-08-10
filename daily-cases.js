@@ -140,11 +140,21 @@ function getDailyData(data) {
 
 function collectData(d, today) {
     var data = [];
-    var date = today;
-    while (date in d) {
-        data.unshift(d[date]);
-        date.setDate(date.getDate() - 1);
-    }
+    // var date = today;
+    // while (date in d) {
+    //     data.unshift(d[date]);
+    //     date.setDate(date.getDate() - 1);
+    // }
+    let dates = Object.keys(d);
+    dates.sort((a, b) => new Date(a) - new Date(b));
+    let allDates = getDates(new Date(dates[0]), new Date(dates[dates.length - 1]))
+    allDates.forEach((date) => {
+        if (date in d) {
+            data.push(d[date])
+        } else {
+            data.push(new DateStat(date));
+        }
+    })
     var cumulative = new DataPoint();
     var cumCounties = {};
 

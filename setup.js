@@ -44,3 +44,5 @@ var columnXs = function() {
     })
     return xs;
 }
+
+const chartStart = new Date("Mar 01 2020")
