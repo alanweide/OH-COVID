@@ -35,7 +35,7 @@ const milestones = [{
         "event": "Statewide Mask Mandate"
     },
     {
-        "date": new Date("August 19, 2020"),
+        "date": new Date("August 12, 2020"),
         "event": "Ohio State Begins Move-in"
     },
     {
