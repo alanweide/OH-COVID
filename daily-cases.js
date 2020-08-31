@@ -104,7 +104,7 @@ function getDailyData(data) {
             deathDate: new Date(d["Date Of Death"]),
             admissionDate: new Date(d["Admission Date"]),
             caseCount: +d["Case Count"],
-            deathCount: +d["Death Count"],
+            deathCount: ("Death Count" in d ? +d["Death Count"] : +d["Death Due to Illness Count"]),
             hospCount: +d["Hospitalized Count"]
         };
         affectedCounties.add(datum.county);
