@@ -45,6 +45,8 @@ const milestones = [{
 ];
 
 const prelimDataDelay = 14;
+const chartedDayCount = 200;
+const firstChartedDay = new Date("March 1, 2020");
 
 function updateCountyCases(daily, datum) {
     if (!(datum.county in daily.counties)) {
@@ -203,11 +205,19 @@ function drawDailyCharts(data, date) {
     updateCharts(charts);
 }
 
+function domain(data) {
+    let max = d3.extent(data, d => d.date)[1];
+    // let min = max.plusDays(-chartedDayCount);
+    let min = firstChartedDay;
+    return [min, max];
+}
+
 function generateCharts(chartedCounties) {
 
     // Set the scales
     var xScale = d3.scaleTime()
-        .domain(d3.extent(cleanData, d => d.date))
+        // .domain(d3.extent(cleanData, d => d.date))
+        .domain(domain(cleanData)).clamp(true)
         .range([0, columnWidths()[0]]);
     var yScaleCases = d3.scaleLinear()
         .domain([0, d3.max(cleanData, d => +d.statewide.daily.cases)]).nice()
