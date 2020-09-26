@@ -15,7 +15,7 @@ curl https://coronavirus.ohio.gov/static/COVIDSummaryData.csv -o data/$today.csv
 if [ -f "data/$yesterday.csv" ]; then
 if [[ $(diff data/$today.csv data/$yesterday.csv) ]]; then
     echo "Got new data."
-    branch=$(git branch --show-current)
+    branch=$(git branch | grep \* | cut -d ' ' -f2)
     git checkout master
     git add data/*
     git commit -m "Data through $today"
@@ -27,7 +27,7 @@ else
 fi
 else
     echo "Got new data."
-    branch=$(git branch --show-current)
+    branch=$(git branch | grep \* | cut -d ' ' -f2)
     git checkout master
     git add data/*
     git commit -m "Data through $today"
