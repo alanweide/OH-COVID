@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 . ${HOME}/.zshrc
 
 # Keep track of today's date and yesterday for comparing files.
