@@ -9,7 +9,7 @@ yesterday=$(date -v -1d +%Y-%m-%d)
 pushd ${COVID_HOME}
 
 # Get COVIDSummaryData from Ohio website.
-curl https://coronavirus.ohio.gov/static/COVIDSummaryData.csv -o data/$today.csv
+curl https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv -o data/$today.csv
 
 # If it's the same file as yesterday, delete it.
 if [ -f "data/$yesterday.csv" ]; then
