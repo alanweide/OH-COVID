@@ -41,6 +41,18 @@ const milestones = [{
     {
         "date": new Date("August 25, 2020"),
         "event": "Ohio State Begins Classes"
+    },
+    {
+        "date": new Date("October 31, 2020"),
+        "event": "Halloween"
+    },
+    {
+        "date": new Date("November 3, 2020"),
+        "event": "Election Day"
+    },
+    {
+        "date": new Date("November 26, 2020"),
+        "event": "Thanksgiving"
     }
 ];
 
