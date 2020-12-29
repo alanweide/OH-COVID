@@ -52,7 +52,11 @@ const milestones = [{
     },
     {
         "date": new Date("November 26, 2020"),
-        "event": "Thanksgiving"
+        "event": "Thanksgiving Day"
+    },
+    {
+        "date": new Date("December 25, 2020"),
+        "event": "Christmas Day"
     }
 ];
 
