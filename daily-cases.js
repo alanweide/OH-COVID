@@ -55,8 +55,28 @@ const milestones = [{
         "event": "Thanksgiving Day"
     },
     {
+        "date": new Date("December 14, 2020"),
+        "event": "First COVID-19 Vaccinations Administered"
+    },
+    {
         "date": new Date("December 25, 2020"),
         "event": "Christmas Day"
+    },
+    {
+        "date": new Date("January 1, 2021"),
+        "event": "New Year's Day"
+    },
+    {
+        "date": new Date("January 6, 2021"),
+        "event": "US Capitol Riots"
+    },
+    {
+        "date": new Date("January 20, 2021"),
+        "event": "Joe Biden Inaugurated"
+    },
+    {
+        "date": new Date("February 4, 2021"),
+        "event": "Ohio Surpasses 1,000,000 Vaccinations Started"
     }
 ];
 
