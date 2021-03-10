@@ -56,7 +56,7 @@ const milestones = [{
     },
     {
         "date": new Date("December 14, 2020"),
-        "event": "First COVID-19 Vaccinations Administered"
+        "event": "First Ohio COVID-19 Vaccinations"
     },
     {
         "date": new Date("December 25, 2020"),
@@ -76,7 +76,11 @@ const milestones = [{
     },
     {
         "date": new Date("February 4, 2021"),
-        "event": "Ohio Surpasses 1,000,000 Vaccinations Started"
+        "event": "1,000,000 Ohioan Vaccinations Started (52 days)"
+    },
+    {
+        "date": new Date("March 6, 2021"),
+        "event": "2,000,000 Ohioan Vaccinations Started (30 days)"
     }
 ];
 
