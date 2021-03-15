@@ -86,7 +86,7 @@ const milestones = [{
 
 const prelimDataDelay = 14;
 const chartedDayCount = 200;
-const firstChartedDay = new Date("March 1, 2020");
+const firstChartedDay = new Date("June 1, 2020");
 
 function updateCountyCases(daily, datum) {
     if (!(datum.county in daily.counties)) {
@@ -146,7 +146,7 @@ function getDailyData(data) {
             deathDate: new Date(d["Date Of Death"]),
             admissionDate: new Date(d["Admission Date"]),
             caseCount: +d["Case Count"],
-            deathCount: ("Death Count" in d ? +d["Death Count"] : +d["Death Due to Illness Count"]),
+            deathCount: ("Death Count" in d ? +d["Death Count"] : +d["Death Due To Illness Count - County Of Residence"]),
             hospCount: +d["Hospitalized Count"]
         };
         affectedCounties.add(datum.county);
@@ -197,6 +197,7 @@ function collectData(d, today) {
     // }
     let dates = Object.keys(d);
     dates.sort((a, b) => new Date(a) - new Date(b));
+    // console.log("All dates: " + dates);
     let allDates = getDates(new Date(dates[0]), new Date(dates[dates.length - 1]))
     allDates.forEach((date) => {
         if (date in d) {
@@ -210,6 +211,7 @@ function collectData(d, today) {
 
     // Compute cumulative totals
     data.forEach((datum, i) => {
+        console.log("Computing cumulatives for " + datum.date);
         cumulative.cases += datum.statewide.daily.cases;
         cumulative.hospitalizations += datum.statewide.daily.hospitalizations;
         cumulative.deaths += datum.statewide.daily.deaths;
