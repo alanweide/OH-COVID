@@ -7,7 +7,8 @@ d3.selection.prototype.moveToFront = function() {
 Date.prototype.plusDays = function(days) {
     var date = new Date(this.valueOf());
     date.setDate(date.getDate() + days);
-    return date;
+    return new Date(date.toDateOnlyString());
+    // return date;
 }
 
 function getDates(startDate, stopDate) {
@@ -49,7 +50,7 @@ function fileExists(url) {
 
 function colorLuminance(hex, lum) {
     // validate hex string
-    hex = String(hex).replace(/[^0-9a-f]/gi, '');
+    hex = String(hex).replace(/[^0-9a-f]/, '');
     if (hex.length < 6) {
         hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
     }

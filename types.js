@@ -52,7 +52,9 @@ function Series(
     this.color = color;
     this.opacity = opacity;
     this.name = name;
-    this.defined = defined;
+    this.defined = ((d, i) => {
+        defined(d) && xArg(d, i) >= xScale.domain()[0] && xArg(d, i) <= xScale.domain()[1]
+    });
     this.kind = kind;
 
     this.x = (d, i) => this.xScale(this.xArg(d, i));
@@ -253,6 +255,7 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
                         // .align(1.5)
                     offset = xScaleBand.step() / 2;
                     let xBand = (d, i) => xScaleBand(s.xArg(d, i))
+                    let filteredData = s.data.filter(s.defined);
                     selection.append("g").selectAll("rect").data(s.data)
                         .enter().append("rect")
                         .attr("fill", s.color).attr("stroke", s.color).attr("opacity", s.opacity)
@@ -285,10 +288,12 @@ function Chart(xAxis, yAxis, xGrid, yGrid, series, chartTitle, dim = { width: co
         var milestoneMouseover = function() {},
             milestoneMouseout = function() {};
 
+        // Draw milestones
         if (ops.milestones) {
             let tickHeight = 10;
             let milestoneX = d => this.series[0].xScale(d.date);
-            milestoneMarkers = selection.selectAll("#milestones").data(milestones)
+            let plottedMilestones = milestones.filter(d => milestoneX(d) >= this.series[0].xScale.range()[0] && milestoneX(d) <= this.series[0].xScale.range()[1]);
+            milestoneMarkers = selection.selectAll("#milestones").data(plottedMilestones)
                 .enter().append("g").attr("id", "milestones").attr("transform", translate(0, 0))
             let milestoneOverlay = milestoneMarkers.append("rect").attr("id", (d, i) => `milestoneOverlay${i}`)
                 .attr("fill", "white").attr("opacity", 0)

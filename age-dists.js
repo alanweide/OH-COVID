@@ -10,7 +10,7 @@ function getAgeData(rawData) {
     rawData.forEach(e => {
         let eCases = +e["Case Count"];
         let eHosps = +e["Hospitalized Count"];
-        let eDeaths = ("Death Count" in e ? +e["Death Count"] : +e["Death Due to Illness Count"]);
+        let eDeaths = +e["Death Due To Illness Count - County Of Death"];
 
         ageData[0][e["Age Range"]] += eCases;
         ageData[1][e["Age Range"]] += eHosps;

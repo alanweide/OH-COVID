@@ -85,8 +85,8 @@ const milestones = [{
 ];
 
 const prelimDataDelay = 14;
-const chartedDayCount = 200;
-const firstChartedDay = new Date("June 1, 2020");
+const chartedDayCount = 100;
+const firstChartedDay = new Date("January 1, 2020");
 
 function updateCountyCases(daily, datum) {
     if (!(datum.county in daily.counties)) {
@@ -146,7 +146,7 @@ function getDailyData(data) {
             deathDate: new Date(d["Date Of Death"]),
             admissionDate: new Date(d["Admission Date"]),
             caseCount: +d["Case Count"],
-            deathCount: ("Death Count" in d ? +d["Death Count"] : +d["Death Due To Illness Count - County Of Residence"]),
+            deathCount: +d["Death Due To Illness Count - County Of Death"],
             hospCount: +d["Hospitalized Count"]
         };
         affectedCounties.add(datum.county);
@@ -197,7 +197,6 @@ function collectData(d, today) {
     // }
     let dates = Object.keys(d);
     dates.sort((a, b) => new Date(a) - new Date(b));
-    // console.log("All dates: " + dates);
     let allDates = getDates(new Date(dates[0]), new Date(dates[dates.length - 1]))
     allDates.forEach((date) => {
         if (date in d) {
@@ -211,12 +210,12 @@ function collectData(d, today) {
 
     // Compute cumulative totals
     data.forEach((datum, i) => {
-        console.log("Computing cumulatives for " + datum.date);
         cumulative.cases += datum.statewide.daily.cases;
         cumulative.hospitalizations += datum.statewide.daily.hospitalizations;
         cumulative.deaths += datum.statewide.daily.deaths;
         datum.cumulative = new DataPoint(cumulative.cases, cumulative.hospitalizations, cumulative.deaths);
-        for (var county in {...datum.counties, ...cumCounties }) {
+        let iteratorVar = {...datum.counties, ...cumCounties};
+        for (var county in iteratorVar) {
             if (!(county in cumCounties)) {
                 cumCounties[county] = new DataPoint();
             } else if (!(county in datum.counties)) {
@@ -249,8 +248,8 @@ function drawDailyCharts(data, date) {
 
 function domain(data) {
     let max = d3.extent(data, d => d.date)[1];
-    // let min = max.plusDays(-chartedDayCount);
-    let min = firstChartedDay;
+    let min = max.plusDays(-chartedDayCount);
+    // let min = firstChartedDay;
     return [min, max];
 }
 
@@ -357,7 +356,9 @@ function generateCharts(chartedCounties) {
     );
     const stateCasesAverage = new Series(
         movingAverage(cleanData.map(d => d.statewide.daily.cases), 7),
-        xScale, (d, i) => cleanData[i].date,
+        xScale, (d, i) => {
+            cleanData[i].date
+        },
         yScaleCases, d => (d),
         d => 0,
         "green", 1,
